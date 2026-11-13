@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <RootNamespace>Reversi_game</RootNamespace>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SocketIOClient" Version="2.2.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Reversi-mcts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\Reversi-mcts\bin\Debug\netcoreapp3.1\Reversi-mcts.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
