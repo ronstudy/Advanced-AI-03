@@ -3,7 +3,7 @@
 Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa Cấp Độ (Extended Tic-Tac-Toe `M×N, K`)**. Mọi trạng thái `DONE` đều phải đi kèm bằng chứng kiểm chứng (`pytest` output, đường dẫn checkpoint, hoặc raw log) theo đúng quy định trong [RULES.md](./RULES.md) và kế hoạch tại [TASKS.md](./TASKS.md).
 
 - **Cập nhật lần cuối:** `2026-11-14`
-- **Giai đoạn hiện tại:** Đang thực hiện **Sprint 1** (Hoàn thành `T1.1`–`T1.3`, tiếp theo `T1.4`)
+- **Giai đoạn hiện tại:** Hoàn tất **Sprint 1 (`4 / 4`)**, sẵn sàng chuyển sang **Sprint 2 (`T2.1`–`T2.5`)**
 
 ---
 
@@ -12,7 +12,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | Giai đoạn | Mô tả | Tiến độ | Trạng thái | Cổng nghiệm thu |
 |---|---|---|---|---|
 | **Phase 0** | Bộ 6 tài liệu Planning (`PRD`, `RULES`, `ARCHITECTURE`, `DESIGN`, `TASKS`, `PROGRESS`) | `6 / 6` | `DONE` | Đã duyệt & lưu đủ trong `Planning/` |
-| **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `3 / 4` | `IN_PROGRESS` | `pytest tests/test_engine.py` pass 100% |
+| **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `4 / 4` | `DONE` | `pytest tests/test_engine.py` pass 100% (`29 passed`); `ruff` sạch |
 | **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `0 / 5` | `TODO` | Contract & Search tests pass 100% |
 | **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `0 / 4` | `TODO` | Đủ checkpoints + `meta.json` hợp lệ |
 | **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ3, RQ4, RQ5`) | `0 / 4` | `TODO` | Raw JSONL logs & 95% CI hoàn chỉnh |
@@ -38,7 +38,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | **T1.1** | Khởi tạo `pyproject.toml`, `configs/*.yaml`, `config.py`, `seed_everything()` | `DONE` | `2026-11-14` | `pip install --no-build-isolation --no-deps -e .` OK; `pytest tests/test_config.py -v`: `24 passed`; `ruff check src/ tests/test_config.py`: `All checks passed!` |
 | **T1.2** | `engine/exceptions.py` & `engine/rules.py` ($O(K)$ win check, canonical, weights) | `DONE` | `2026-11-14` | `pytest tests/test_config.py tests/test_rules.py -v`: `51 passed` (27 tests trong `test_rules.py`); `ruff check src/ tests/`: `All checks passed!` |
 | **T1.3** | `ExtendedTicTacToe` (7+1 API chuẩn) trong `engine/game.py` | `DONE` | `2026-11-14` | `pytest -v`: `65 passed` (14 tests trong `test_engine.py`); `ruff check src/ tests/`: `All checks passed!` |
-| **T1.4** | Bộ kiểm thử `tests/test_engine.py` (`3×3`, `4×4 K=3/4`, `5×5`) | `TODO` | — | — |
+| **T1.4** | Bộ kiểm thử `tests/test_engine.py` (`3×3`, `4×4 K=3/4`, `5×5`) | `DONE` | `2026-11-14` | `pytest tests/test_engine.py -v`: `29 passed`; `pytest -v`: `80 passed`; `ruff check src/ tests/`: `All checks passed!` |
 | **T2.1** | `agents/base.py` (`BaseAgent`, `AgentDecision`, `SearchTimeoutError`) | `TODO` | — | — |
 | **T2.2** | Cấp 1 (`RandomAgent`) & Cấp 2 (`RuleBasedAgent` 6 tầng luật) | `TODO` | — | — |
 | **T2.3** | Cấp 3 (`MinimaxAgent` / `AlphaBetaAgent`, heuristic, Iterative Deepening) | `TODO` | — | — |
@@ -78,6 +78,10 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 
 ## 5. Hành động Tiếp theo (`Next Actions`)
 
-1. Hoàn tất **Sprint 1 (`T1.4`)**:
-   - **T1.4:** Mở rộng, rà soát toàn diện `tests/test_engine.py` (`3×3`, `4×4 K=3/4`, `5×5`) và chạy cổng nghiệm thu Sprint 1 (`pytest tests/test_engine.py` pass 100%, `ruff check src/ttt_ai/engine` sạch lỗi).
-2. Sau khi vượt qua cổng nghiệm thu Sprint 1, cập nhật trạng thái `T1.4` sang `DONE` và chuyển Sprint 1 sang `DONE` trước khi sang Sprint 2 (`T2.1`–`T2.5`).
+1. Khởi động **Sprint 2 (`T2.1` – `T2.5`)**:
+   - **T2.1:** Xây dựng `src/ttt_ai/agents/base.py` (`BaseAgent`, `AgentDecision`, `SearchTimeoutError`).
+   - **T2.2:** Cài đặt Cấp 1 (`RandomAgent`) & Cấp 2 (`RuleBasedAgent` với 6 tầng luật ưu tiên).
+   - **T2.3:** Cài đặt Cấp 3 (`MinimaxAgent` / `AlphaBetaAgent`, heuristic `evaluate_board`, Iterative Deepening).
+   - **T2.4:** Cài đặt Cấp 4 (`MCTSAgent` UCT 4 pha).
+   - **T2.5:** Viết bộ kiểm thử hợp đồng & tìm kiếm (`tests/test_agents_contract.py`, `tests/test_search_agents.py`).
+2. Vượt qua cổng nghiệm thu Sprint 2 và cập nhật `PROGRESS.md` trước khi bước vào Sprint 3.
