@@ -7,6 +7,7 @@ This package must stay pure Python + NumPy with zero dependencies on `torch`,
 from __future__ import annotations
 
 from ttt_ai.engine.exceptions import IllegalMoveError, InvalidConfigError, TicTacToeError
+from ttt_ai.engine.game import ExtendedTicTacToe
 from ttt_ai.engine.rules import (
     DIRECTIONS,
     EMPTY,
@@ -28,6 +29,7 @@ __all__ = [
     "PLAYER_O",
     "PLAYER_X",
     "Player",
+    "ExtendedTicTacToe",
     "TicTacToeError",
     "InvalidConfigError",
     "IllegalMoveError",
