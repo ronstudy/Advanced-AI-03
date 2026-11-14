@@ -3,7 +3,7 @@
 Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa Cấp Độ (Extended Tic-Tac-Toe `M×N, K`)**. Mọi trạng thái `DONE` đều phải đi kèm bằng chứng kiểm chứng (`pytest` output, đường dẫn checkpoint, hoặc raw log) theo đúng quy định trong [RULES.md](./RULES.md) và kế hoạch tại [TASKS.md](./TASKS.md).
 
 - **Cập nhật lần cuối:** `2026-11-14`
-- **Giai đoạn hiện tại:** Đang thực hiện **Sprint 1** (Hoàn thành `T1.1`, tiếp theo `T1.2`)
+- **Giai đoạn hiện tại:** Đang thực hiện **Sprint 1** (Hoàn thành `T1.1`–`T1.2`, tiếp theo `T1.3`)
 
 ---
 
@@ -12,7 +12,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | Giai đoạn | Mô tả | Tiến độ | Trạng thái | Cổng nghiệm thu |
 |---|---|---|---|---|
 | **Phase 0** | Bộ 6 tài liệu Planning (`PRD`, `RULES`, `ARCHITECTURE`, `DESIGN`, `TASKS`, `PROGRESS`) | `6 / 6` | `DONE` | Đã duyệt & lưu đủ trong `Planning/` |
-| **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `1 / 4` | `IN_PROGRESS` | `pytest tests/test_engine.py` pass 100% |
+| **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `2 / 4` | `IN_PROGRESS` | `pytest tests/test_engine.py` pass 100% |
 | **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `0 / 5` | `TODO` | Contract & Search tests pass 100% |
 | **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `0 / 4` | `TODO` | Đủ checkpoints + `meta.json` hợp lệ |
 | **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ3, RQ4, RQ5`) | `0 / 4` | `TODO` | Raw JSONL logs & 95% CI hoàn chỉnh |
@@ -36,7 +36,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | Mã | Nội dung tóm tắt | Trạng thái | Ngày cập nhật | Bằng chứng kiểm chứng / Ghi chú |
 |---|---|---|---|---|
 | **T1.1** | Khởi tạo `pyproject.toml`, `configs/*.yaml`, `config.py`, `seed_everything()` | `DONE` | `2026-11-14` | `pip install --no-build-isolation --no-deps -e .` OK; `pytest tests/test_config.py -v`: `24 passed`; `ruff check src/ tests/test_config.py`: `All checks passed!` |
-| **T1.2** | `engine/exceptions.py` & `engine/rules.py` ($O(K)$ win check, canonical, weights) | `TODO` | — | — |
+| **T1.2** | `engine/exceptions.py` & `engine/rules.py` ($O(K)$ win check, canonical, weights) | `DONE` | `2026-11-14` | `pytest tests/test_config.py tests/test_rules.py -v`: `51 passed` (27 tests trong `test_rules.py`); `ruff check src/ tests/`: `All checks passed!` |
 | **T1.3** | `ExtendedTicTacToe` (7+1 API chuẩn) trong `engine/game.py` | `TODO` | — | — |
 | **T1.4** | Bộ kiểm thử `tests/test_engine.py` (`3×3`, `4×4 K=3/4`, `5×5`) | `TODO` | — | — |
 | **T2.1** | `agents/base.py` (`BaseAgent`, `AgentDecision`, `SearchTimeoutError`) | `TODO` | — | — |
@@ -78,8 +78,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 
 ## 5. Hành động Tiếp theo (`Next Actions`)
 
-1. Tiếp tục **Sprint 1 (`T1.2` – `T1.4`)**:
-   - **T1.2:** Cài đặt `src/ttt_ai/engine/rules.py` (`check_win_around()` $O(K)$, `precompute_win_windows()`, `positional_weights()`, `encode_canonical_board()`).
-   - **T1.3:** Cài đặt lớp `ExtendedTicTacToe` trong `src/ttt_ai/engine/game.py`.
+1. Tiếp tục **Sprint 1 (`T1.3` – `T1.4`)**:
+   - **T1.3:** Cài đặt lớp `ExtendedTicTacToe` với đầy đủ Game API chuẩn trong `src/ttt_ai/engine/game.py`.
    - **T1.4:** Viết và chạy `tests/test_engine.py` đạt 100% pass.
-2. Sau khi vượt qua cổng nghiệm thu Sprint 1, cập nhật trạng thái `T1.2`–`T1.4` sang `DONE` kèm kết quả test thực tế trong file này trước khi sang Sprint 2.
+2. Sau khi vượt qua cổng nghiệm thu Sprint 1, cập nhật trạng thái `T1.3`–`T1.4` sang `DONE` kèm kết quả test thực tế trong file này trước khi sang Sprint 2.
