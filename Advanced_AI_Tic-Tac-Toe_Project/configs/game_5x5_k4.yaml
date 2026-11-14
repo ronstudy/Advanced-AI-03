@@ -1,0 +1,9 @@
+name: game_5x5_k4
+description: Optional Generalization Bonus (5x5 board, K=4 to win)
+board:
+  rows: 5
+  cols: 5
+  win_k: 4
+seed: 42
+default_time_budget_ms: 100.0
+default_n_simulations: 400

@@ -1,0 +1,9 @@
+name: game_4x4_k3
+description: RQ4 First-Player Advantage Sensitivity Variant (4x4 board, K=3 to win)
+board:
+  rows: 4
+  cols: 4
+  win_k: 3
+seed: 42
+default_time_budget_ms: 50.0
+default_n_simulations: 200

@@ -1,0 +1,9 @@
+name: game_3x3_k3
+description: Slide Sanity Baseline (Classic 3x3 board, K=3 to win)
+board:
+  rows: 3
+  cols: 3
+  win_k: 3
+seed: 42
+default_time_budget_ms: 50.0
+default_n_simulations: 150

@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ttt-ai"
+version = "0.1.0"
+description = "Multi-level Extended Tic-Tac-Toe (MxN, K) Game AI benchmark and Rich CLI."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26.0",
+    "torch>=2.1.0",
+    "pyyaml>=6.0",
+    "rich>=13.7.0",
+    "matplotlib>=3.8.0",
+    "scipy>=1.11.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.3.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = [
+    "ttt_ai",
+    "ttt_ai.engine",
+    "ttt_ai.agents",
+    "ttt_ai.training",
+    "ttt_ai.benchmark",
+    "ttt_ai.ui",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]

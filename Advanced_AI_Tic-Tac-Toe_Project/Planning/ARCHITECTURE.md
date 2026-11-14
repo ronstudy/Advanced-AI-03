@@ -42,7 +42,7 @@ flowchart TD
 ## 2. Cấu trúc Thư mục Dự án
 
 ```text
-FINAL/
+Advanced_AI_Tic-Tac-Toe_Project/
 ├── Planning/
 │   ├── PRD.md                        # Đặc tả bài toán, 3 RQ (RQ3, RQ4, RQ5) & Rubric
 │   ├── RULES.md                      # Quy chuẩn PEP 8, API contract & trung thực học thuật

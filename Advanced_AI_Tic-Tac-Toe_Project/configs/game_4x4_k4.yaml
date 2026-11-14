@@ -1,0 +1,9 @@
+name: game_4x4_k4
+description: Primary Benchmark (4x4 board, K=4 to win) for RQ3, RQ4, RQ5
+board:
+  rows: 4
+  cols: 4
+  win_k: 4
+seed: 42
+default_time_budget_ms: 50.0
+default_n_simulations: 200
