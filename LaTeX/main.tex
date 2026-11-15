@@ -1,0 +1,425 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[utf8]{vietnam}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{tocbibind} % Để thêm mục lục, tài liệu tham khảo vào mục lục
+\usepackage{float} % Thêm gói float để sử dụng [H]
+
+% Thiết lập lề trang
+\geometry{a4paper, left=3cm, right=2cm, top=2.5cm, bottom=2.5cm}
+
+% Tắt thụt đầu dòng
+\setlength{\parindent}{0pt}
+
+% Thiết lập khoảng cách dòng
+\linespread{1.2}
+
+\begin{document}
+
+% Trang bìa
+\begin{titlepage}
+    \centering
+
+    \huge
+    \textbf{TRƯỜNG ĐẠI HỌC SÀI GÒN} \\[0.3cm]
+    \large
+    \textbf{KHOA CÔNG NGHỆ THÔNG TIN} \\[1cm]
+    
+    \includegraphics[width=9cm]{SGU-LOGO.png} \\[1cm]
+    \Large
+    \textbf{BÁO CÁO TIẾN ĐỘ ĐỒ ÁN} \\[0.3cm]
+    \Large
+    \textbf{Học Phần: Trí Tuệ Nhân Tạo Nâng Cao (841458)} \\[0.5cm]
+    
+    \textbf{Chủ Đề: Xây dựng và đánh giá Game AI đa cấp độ - Extended Tic-Tac-Toe} \\[0.7cm]
+    
+    \textbf{Sinh Viên Thực Hiện:} \\[0.3cm]
+    \begin{tabular}{ll}
+        Trương Chí Long & MSSV: 3123410198 \\
+    \end{tabular} \\[0.5cm]
+    \Large
+    \text{Giảng Viên Hướng Dẫn:} \textbf{Đỗ Như Tài} \\[2cm]
+    \normalsize
+    \textbf{Thành phố Hồ Chí Minh, tháng 11 năm 2026}
+    \vfill
+\end{titlepage}
+
+% Mục lục tự động
+\tableofcontents
+\clearpage
+\renewcommand{\thesection}{\arabic{section}}
+
+\section{Tổng quan Đề tài \& Mục tiêu Đồ án}
+
+\subsection{Bối cảnh \& Định vị Bài toán Game AI Mở rộng}
+Trò chơi Tic-Tac-Toe truyền thống trên bàn cờ $3 \times 3$ với điều kiện thắng $K=3$ là một bài toán đối kháng kinh điển trong lý thuyết trò chơi và trí tuệ nhân tạo. Tuy nhiên, không gian trạng thái của bàn cờ $3 \times 3$ tương đối nhỏ, chỉ gồm tối đa $3^9 = 19{,}683$ cấu hình hợp lệ và chuỗi nước đi khả dĩ không vượt quá $9! = 362{,}880$. Với không gian tìm kiếm hữu hạn này, các thuật toán tìm kiếm vét cạn (exhaustive search) hoặc hệ luật Heuristic kinh điển (như bộ luật Newell \& Simon) đều có thể đạt tới trạng thái chơi hoàn hảo (optimal play). Khi hai tác tử hoàn hảo đối đầu, mọi ván đấu đều tất yếu dẫn đến kết quả hòa. Điều này triệt tiêu hoàn toàn khả năng phân hóa chiến thuật và làm mờ nhạt sự khác biệt về mặt hiệu năng giữa các phương pháp tiếp cận AI từ cổ điển đến hiện đại.
+
+Để khắc phục hạn chế trên và xây dựng một môi trường thực nghiệm có ý nghĩa khoa học sâu sắc, đồ án mở rộng bài toán sang trò chơi \textbf{Extended Tic-Tac-Toe} với kích thước bàn cờ tổng quát $M \times N$ và điều kiện thắng $K$ quân thẳng hàng liên tiếp ($M \times N, K$). Trong khuôn khổ đồ án, hệ thống tập trung vào các cấu hình trọng tâm:
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Cấu hình chuẩn chính (Primary Benchmark - $4 \times 4, K=4$):} Không gian trạng thái mở rộng lên đến $3^{16} \approx 4.3 \times 10^7$ cấu hình và độ sâu cây trò chơi có thể đạt tới $16! \approx 2.09 \times 10^{13}$ chuỗi nước đi. Sự bùng nổ tổ hợp này làm nổi bật rõ nét vai trò của hàm lượng giá Heuristic, kỹ thuật cắt tỉa nhánh tìm kiếm Alpha-Beta, thuật toán tìm kiếm cây Monte Carlo (MCTS) và các mô hình học sâu.
+    \item \textbf{Biến thể nghiên cứu độ nhạy ($4 \times 4, K=3$):} Được thiết kế chuyên biệt để phân tích sự dịch chuyển của lợi thế người đi trước khi điều kiện thắng được nới lỏng.
+    \item \textbf{Cấu hình đối chứng chuẩn mực ($3 \times 3, K=3$):} Dùng để kiểm chứng tính đúng đắn (sanity check) của các tác tử thuật toán so với lý thuyết kinh điển và tài liệu tham khảo.
+    \item \textbf{Biến thể mở rộng tổng quát hóa ($5 \times 5, K=4$):} Thử nghiệm khả năng thích ứng linh hoạt của kiến trúc trò chơi đối với các không gian tìm kiếm quy mô lớn hơn ($3^{25} \approx 8.47 \times 10^{11}$ trạng thái).
+\end{itemize}
+
+\subsection{Mục tiêu Cốt lõi của Đồ án}
+Đồ án hướng tới các mục tiêu học thuật và kỹ thuật toàn diện sau:
+\begin{enumerate}[leftmargin=1.5cm]
+    \item \textbf{Mô hình hóa môi trường ra quyết định chuẩn mực:} Xây dựng Game Engine tổng quát $M \times N, K$ thỏa mãn các đặc tính của môi trường đối kháng hai người chơi: quan sát đầy đủ (Fully Observable), tất định (Deterministic), tổng bằng không (Zero-sum), với giao diện lập trình Game API chuẩn hóa và bộ kiểm thử đơn vị tự động bao phủ 100\% các ca biên.
+    \item \textbf{Thiết kế hệ sinh thái tác tử AI đa cấp độ (7 Cấp độ):} Hiện thực hóa từ gốc và giải thích tường minh nguyên lý của 7 lớp tác tử đại diện cho các trường phái AI khác nhau:
+    \begin{itemize}
+        \item \textit{Cấp 1 (Baseline):} \texttt{RandomAgent} -- lấy mẫu ngẫu nhiên đều có kiểm soát hạt giống (seed).
+        \item \textit{Cấp 2 (Heuristic / Rule-based):} \texttt{RuleBasedAgent} -- tổng quát hóa 6 tầng luật ưu tiên Newell \& Simon cho bàn cờ $M \times N, K$.
+        \item \textit{Cấp 3 (Adversarial Search):} \texttt{MinimaxAgent} / \texttt{AlphaBetaAgent} -- tìm kiếm đối kháng Negamax kết hợp cắt tỉa Alpha-Beta fail-soft, sắp xếp nước đi (Move Ordering), hàm lượng giá Heuristic tĩnh và Iterative Deepening kiểm soát deadline thời gian.
+        \item \textit{Cấp 4 (Monte Carlo Tree Search):} \texttt{MCTSAgent} -- thuật toán UCT 4 pha kinh điển với cơ chế cân bằng khám phá/khai thác và giải phóng bộ nhớ chủ động.
+        \item \textit{Cấp 5 (Supervised Deep Learning):} \texttt{PolicyNetworkAgent} và \texttt{ValueGreedyAgent} -- mạng nơ-ron tích chập Fast/Strong Policy Network và Value Network huấn luyện trên dữ liệu chuyên gia được phân chia chống rò rỉ.
+        \item \textit{Cấp 6 (Reinforcement Learning):} \texttt{RLAgent} -- Tabular Q-learning cho bàn $3 \times 3$ và Deep Q-Network (DQN) tự chơi (Self-play) kết hợp Experience Replay và Target Network cho bàn $4 \times 4$.
+        \item \textit{Cấp 7 (AlphaGo-inspired Hybrid):} \texttt{HybridMCTSAgent} -- mô hình lai kết hợp cây tìm kiếm PUCT với xác suất tiên nghiệm $P(s, a)$ từ mạng Policy và hàm lượng giá trạng thái từ mạng Value.
+    \end{itemize}
+    \item \textbf{Thiết kế hệ thống giải đấu và đánh giá công bằng:} Vận hành giải đấu Paired Round-Robin cân bằng tuyệt đối số ván đi trước ($X$) và đi sau ($O$), kiểm soát ngân sách tính toán (Fixed Compute Budget vs Default Config), ghi nhận độ trễ (mean, $p95$), số lượng nút duyệt/simulations, và phân tích thống kê kèm khoảng tin cậy 95\% (Wilson Score interval và Bootstrap CI).
+    \item \textbf{Cung cấp bằng chứng thực nghiệm trả lời 3 câu hỏi nghiên cứu cốt lõi:} Tập trung đối chứng định lượng để rút ra các kết luận khoa học vững chắc thay vì chỉ dừng lại ở việc xếp hạng điểm số đơn thuần.
+\end{enumerate}
+
+\subsection{Các Câu hỏi Nghiên cứu Trọng tâm (Research Questions)}
+Dự án được định hướng xoay quanh việc giải quyết 3 Câu hỏi Nghiên cứu (Research Questions - RQ) mang tính học thuật cốt lõi đã được xác lập trong hồ sơ đặc tả yêu cầu:
+
+\begin{enumerate}[label=\textbf{RQ\arabic*:}, leftmargin=1.5cm, start=1]
+    \item \textbf{Hiệu quả của mô hình lai (Hybrid MCTS + Policy/Value Network) so với MCTS thuần và Policy-only:}
+    \begin{quote}
+        \textit{``Trên không gian bàn cờ Tic-Tac-Toe mở rộng ($4 \times 4, K=4$), việc dẫn hướng tìm kiếm cây bằng mạng học được (Hybrid MCTS + Policy/Value Network theo cảm hứng AlphaGo) cải thiện hiệu quả sử dụng ngân sách tìm kiếm (tỷ lệ thắng và chỉ số điểm số $\text{Score}$ theo từng mốc số lượng mô phỏng $\text{n\_simulations}$ và độ trễ $\text{ms/nước}$) ở mức độ nào so với MCTS UCT sử dụng rollout ngẫu nhiên thuần túy và so với Policy-only không sử dụng tìm kiếm cây?''}
+    \end{quote}
+    \begin{itemize}
+        \item \textbf{Giả thuyết kiểm chứng:} Khi kích thước bàn cờ mở rộng, cơ chế rollout ngẫu nhiên của MCTS thuần túy bị suy giảm mạnh độ chính xác chiến thuật ở giai đoạn đầu và trung cuộc do xác suất lựa chọn ngẫu nhiên trúng chuỗi nước đi tối ưu giảm theo hàm mũ. Việc đưa phân phối xác suất tiên nghiệm $P(s, a)$ từ mạng Policy vào công thức chọn nhánh (PUCT) giúp tập trung ngân sách mô phỏng vào các nhánh triển vọng sớm hơn, đạt tỷ lệ thắng và điểm số vượt trội cả mô hình Policy-only (nhờ khả năng nhìn trước để sửa sai chiến thuật) lẫn Pure MCTS ở cùng một mức ngân sách tính toán.
+        \item \textbf{Thiết kế thực nghiệm \& Độ đo:} Thí nghiệm phân tích thành phần (Ablation study) so sánh đối đầu tay đôi giữa \texttt{Policy-only} vs. \texttt{Pure MCTS (UCT)} vs. \texttt{Hybrid MCTS} tại các mốc ngân sách mô phỏng $\text{n\_simulations} \in \{50, 150, 400\}$ và ngưỡng thời gian khống chế $10\text{ ms}$, $50\text{ ms}$ trên mỗi nước đi.
+    \end{itemize}
+
+    \item \textbf{Lợi thế người đi trước (First-player Advantage) theo cấp độ AI và luật thắng:}
+    \begin{quote}
+        \textit{``Mức độ chênh lệch lợi thế người đi trước ($\Delta\text{Score} = \text{Score}_X - \text{Score}_O$) biến thiên như thế nào khi nâng cấp tác tử từ Baseline (Random, Rule-based) lên Tìm kiếm đối kháng (Alpha-Beta, MCTS) và Học máy/Học sâu (NN, RL, Hybrid MCTS), đồng thời việc thay đổi điều kiện thắng từ $4 \times 4, K=3$ sang $4 \times 4, K=4$ (đối chứng thêm với $3 \times 3, K=3$) làm dịch chuyển cán cân thắng/hòa ra sao?''}
+    \end{quote}
+    \begin{itemize}
+        \item \textbf{Giả thuyết kiểm chứng:} Trên biến thể $4 \times 4, K=3$, lợi thế đi trước của quân $X$ bị khuếch đại cực đại do người chơi đầu tiên có thể dễ dàng thiết lập thế tấn công đôi (fork) không thể ngăn chặn ngay từ các nước đi mở màn; khi nâng điều kiện thắng lên chuẩn $4 \times 4, K=4$, không gian phòng thủ được mở rộng đáng kể khiến các ván đấu giữa các tác tử AI bậc cao có xu hướng hội tụ về kết quả hòa, từ đó thu hẹp độ lệch $\Delta\text{Score}$ và phản ánh đúng năng lực hoạch định chiến lược dài hạn thay vì ưu thế lượt đi.
+        \item \textbf{Thiết kế thực nghiệm \& Độ đo:} Tách biệt dữ liệu ma trận kết quả thi đấu khi cầm quân $X$ (đi trước) và quân $O$ (đi sau), tính toán độ chênh lệch $\Delta\text{Score}$ kèm khoảng tin cậy 95\% (Wilson/Bootstrap CI) trên cả 3 cấu hình: $3 \times 3, K=3$; $4 \times 4, K=3$ và $4 \times 4, K=4$.
+    \end{itemize}
+
+    \item \textbf{Độ ổn định \& Khả năng tổng quát hóa: Học tăng cường (RL) so với Học có giám sát (Supervised Learning):}
+    \begin{quote}
+        \textit{``Khi đối đầu với tập đối thủ đa dạng chưa từng xuất hiện trong quá trình huấn luyện (unseen opponents như Alpha-Beta giới hạn độ sâu và MCTS UCT), tác tử học tăng cường qua tự chơi (RL: Tabular Q-learning trên $3 \times 3$ / DQN Self-play trên $4 \times 4$) có đạt khả năng tổng quát hóa và độ ổn định qua nhiều random seed tốt hơn so với mô hình Supervised Learning bắt chước nước đi chuyên gia (Fast/Strong Policy Network -- vốn chịu ảnh hưởng bởi trần năng lực của teacher) hay không?''}
+    \end{quote}
+    \begin{itemize}
+        \item \textbf{Giả thuyết kiểm chứng:} Mô hình học có giám sát (Supervised Learning) có thể đạt độ chính xác phân loại rất cao trên tập dữ liệu kiểm thử cùng phân phối với chuyên gia, nhưng dễ rơi vào trạng thái bế tắc hoặc ra quyết định sai lầm khi gặp phải các cấu hình trạng thái dị biệt (out-of-distribution) do các đối thủ có lối chơi khác biệt tạo ra; ngược lại, tác tử RL thông qua cơ chế tự chơi khám phá không gian trạng thái đa dạng hơn nhưng đòi hỏi kỹ thuật ổn định hóa xấp xỉ hàm giá trị (DQN) chặt chẽ để duy trì sự nhất quán giữa các hạt giống ngẫu nhiên.
+        \item \textbf{Thiết kế thực nghiệm \& Độ đo:} Vẽ đường cong học tập (loss/win-rate theo epoch/episode qua ít nhất 3 random seeds độc lập), đánh giá tỷ lệ Thắng/Hòa/Thua trước tập đối thủ unseen và phân tích chuyên sâu các trường hợp thất bại điển hình (failure modes).
+    \end{itemize}
+\end{enumerate}
+
+\clearpage
+\section{Tiến độ Thực hiện Chi tiết}
+
+\subsection{Phân tích Chi tiết Các Giai đoạn Đã Triển khai}
+Tính đến thời điểm báo cáo, dự án đã hoàn thành trọn vẹn giai đoạn hạ tầng trò chơi cốt lõi (\textbf{Sprint 1}), và toàn bộ hệ thống tác tử cơ bản kết hợp tìm kiếm đối kháng cổ điển (\textbf{Sprint 2}). Toàn bộ các mốc nghiệm thu kỹ thuật đều được kiểm chứng thông qua hệ thống kiểm thử tự động (\texttt{pytest}) và công cụ kiểm tra chất lượng mã nguồn (\texttt{ruff}).
+
+\subsubsection{Sprint 1: Xây dựng Hạ tầng Lõi \& Game Engine Tổng quát}
+Sprint 1 tập trung xây dựng gói phần mềm \texttt{ttt\_ai} chuẩn mực với các kết quả kỹ thuật nổi bật:
+\begin{itemize}
+    \item \textbf{Cấu hình hóa hệ thống \& Tái lập kết quả (T1.1):} Thiết lập \texttt{pyproject.toml} với cấu trúc thư mục \texttt{src/} layout. Xây dựng module \texttt{config.py} chuyển đổi các file cấu hình YAML thành các Typed Dataclasses an toàn kiểu dữ liệu. Cài đặt hàm \texttt{seed\_\allowbreak everything()} khóa đồng bộ hạt giống ngẫu nhiên cho cả \texttt{random}, \texttt{numpy} và \texttt{torch}.
+    \item \textbf{Thuật toán luật chơi tối ưu $O(K)$ (T1.2):} Trong module \texttt{rules.py}, hàm \texttt{check\_\allowbreak win\_\allowbreak around()} được cài đặt với độ phức tạp thời gian tối ưu $O(K)$, chỉ quét 4 trục (ngang, dọc, chéo chính, chéo phụ) xung quanh tọa độ nước đi vừa thực hiện thay vì duyệt toàn bộ ma trận $M \times N$. Hàm \texttt{precompute\_\allowbreak win\_\allowbreak windows()} tiền tính toán toàn bộ danh sách chỉ số ô của các cửa sổ thắng có độ dài $K$ một lần duy nhất khi khởi tạo, phục vụ tối ưu hóa cho hàm Heuristic và ma trận trọng số vị trí. Hàm \texttt{encode\_\allowbreak canonical\_\allowbreak board()} chuẩn hóa trạng thái bàn cờ về góc nhìn người chơi hiện tại ($s_{\text{canon}} = \text{board} \times \text{current\_player}$).
+    \item \textbf{Lớp trò chơi chuẩn mực \texttt{ExtendedTicTacToe} (T1.3):} Cài đặt đầy đủ hợp đồng 7+1 Game API chuẩn: \texttt{reset()}, \texttt{legal\_actions()}, \texttt{step()}, \texttt{is\_terminal()}, \texttt{result()}, \texttt{render()}, \texttt{clone()}, \texttt{undo()}. Trạng thái bàn cờ được biểu diễn dưới dạng mảng \texttt{numpy.ndarray} kiểu dữ liệu \texttt{int8} kết hợp cấu trúc dữ liệu stack ghi nhận lịch sử nước đi. Cơ chế này cho phép thực hiện cặp thao tác \texttt{step()} và \texttt{undo()} đạt tốc độ $O(1)$ mà không cần cấp phát lại vùng nhớ heap trong suốt quá trình đệ quy tìm kiếm cây.
+    \item \textbf{Kiểm thử đơn vị toàn diện (T1.4):} Xây dựng tệp kiểm thử \texttt{tests/\allowbreak test\_engine.py} gồm 29 bài kiểm thử bao phủ toàn bộ các trường hợp thắng ngang, dọc, chéo, thắng ở ô biên/góc, hòa đầy bàn cờ, ném ngoại lệ \texttt{IllegalMoveError}, tính độc lập bộ nhớ của \texttt{clone()} và tính hoàn nguyên của \texttt{undo()} trên cả 4 cấu hình bàn cờ ($3 \times 3, K=3$; $4 \times 4, K=3$; $4 \times 4, K=4$; $5 \times 5, K=4$), đạt tỷ lệ vượt qua 100\% (29/29 passed). Kết hợp cùng 24 bài kiểm thử cấu hình (\texttt{tests/\allowbreak test\_config.py}) và 27 bài kiểm thử quy tắc luật chơi (\texttt{tests/\allowbreak test\_rules.py}), toàn bộ phân hệ lõi của Sprint 1 đã vượt qua xuất sắc \textbf{80 bài kiểm thử tự động (80/80 passed)} và vượt qua cổng kiểm tra mã nguồn \texttt{ruff} tuyệt đối sạch lỗi.
+\end{itemize}
+
+\subsubsection{Sprint 2: Hiện thực Hóa Hệ thống Tác tử Cấp 1--4 \& Kiểm thử Đối kháng}
+Sprint 2 đã hoàn thiện tầng giao ước tác tử và toàn bộ 4 cấp độ AI tìm kiếm cổ điển:
+\begin{itemize}
+    \item \textbf{Tầng giao ước tác tử \texttt{BaseAgent} (T2.1):} Thiết kế lớp cơ sở trừu tượng \texttt{BaseAgent} và cấu trúc dữ liệu \texttt{AgentDecision} chứa đầy đủ các trường đo lường vi mô: \texttt{action}, \texttt{latency\_\allowbreak ms}, \texttt{nodes\_\allowbreak visited}, \texttt{simulations}, \texttt{depth\_\allowbreak reached}, \texttt{value\_\allowbreak estimate}, \texttt{action\_\allowbreak scores} và \texttt{prior\_\allowbreak probs}. Thời gian suy luận được đo lường chính xác bằng đồng hồ \texttt{time.\allowbreak perf\_\allowbreak counter()} bao trùm toàn bộ chu trình tính toán của hàm \texttt{select\_\allowbreak action()}.
+    \item \textbf{Cấp 1 (\texttt{RandomAgent}) \& Cấp 2 (\texttt{RuleBasedAgent}) (T2.2):}
+    \begin{itemize}
+        \item \texttt{RandomAgent} sử dụng bộ sinh số ngẫu nhiên cô lập \texttt{np.random.Generator} theo seed, bảo đảm tính độc lập và khả năng tái lập kết quả thực nghiệm.
+        \item \texttt{RuleBasedAgent} mở rộng hệ luật Newell \& Simon cho bàn cờ $M \times N, K$ với 6 tầng ưu tiên nghiêm ngặt: (1) Thắng ngay lập tức $\rightarrow$ (2) Chặn đối phương thắng ngay $\rightarrow$ (3) Tạo thế đôi (Fork) $\rightarrow$ (4) Chặn thế đôi của đối phương $\rightarrow$ (5) Chọn ô có trọng số vị trí \texttt{positional\_\allowbreak weights} cao nhất $\rightarrow$ (6) Lựa chọn ngẫu nhiên có kiểm soát.
+        \item \textit{Kết quả kiểm chứng:} Tác tử Cấp 2 đạt tỷ lệ bất bại 100\% vét cạn trên bàn $3 \times 3, K=3$. Khi đối đầu với \texttt{RandomAgent} trên bàn $4 \times 4, K=4$ ($N=100$ ván), \texttt{RuleBasedAgent} đạt điểm số $\text{Score} = 0.935$ (87 thắng, 13 hòa, 0 thua) với độ trễ phản hồi trung bình chỉ $0.0627\text{ ms/nước}$.
+    \end{itemize}
+    \item \textbf{Cấp 3 (\texttt{MinimaxAgent} / \texttt{AlphaBetaAgent}) (T2.3):}
+    \begin{itemize}
+        \item Hiện thực hóa thuật toán tìm kiếm đối kháng Negamax kết hợp kỹ thuật cắt tỉa Alpha-Beta fail-soft.
+        \item Cài đặt cơ chế sắp xếp nước đi (Move Ordering) dựa trên nước đi tối ưu của độ sâu trước (Principal Variation - PV) và ma trận trọng số vị trí tĩnh.
+        \item Hàm lượng giá Heuristic tĩnh \texttt{evaluate\_\allowbreak board} lượng giá toàn bộ các cửa sổ thắng mở, chấm điểm theo hàm mũ cơ số 10 và nén phi tuyến qua hàm $\tanh$ vào khoảng $(-1.0, 1.0)$.
+        \item Tích hợp cơ chế Iterative Deepening kiểm soát deadline thời gian: kiểm tra đồng hồ mỗi 256 nút duyệt (\texttt{nodes\_\allowbreak visited \& 255 == 0}), chủ động ngắt qua ngoại lệ \texttt{SearchTimeoutError} và lập tức hoàn trả nước đi tốt nhất của độ sâu hoàn chỉnh gần nhất.
+        \item \textit{Kết quả kiểm chứng:} Trên bàn $4 \times 4, K=4$ ở độ sâu $d=4$, kỹ thuật cắt tỉa Alpha-Beta kết hợp Move Ordering đã cắt giảm số lượng nút duyệt từ $47{,}297$ nút (Minimax thuần) xuống còn $1{,}941$ nút (giảm tới \textbf{95.9\%} số nút duyệt), độ trễ giảm từ $523.16\text{ ms}$ xuống còn $50.67\text{ ms}$ mà vẫn bảo toàn chính xác nước đi tối ưu và giá trị đánh giá gốc.
+    \end{itemize}
+    \item \textbf{Cấp 4 (\texttt{MCTSAgent}) (T2.4):}
+    \begin{itemize}
+        \item Cài đặt thuật toán Tìm kiếm cây Monte Carlo (MCTS) 4 pha chuẩn mực: Selection (UCT với hằng số $c_{\text{uct}} = \sqrt{2}$), Expansion (mở rộng một nước đi chưa thử), Simulation (rollout ngẫu nhiên đồng đều đến trạng thái kết thúc), Backpropagation (lan truyền ngược giá trị zero-sum đảo dấu theo từng tầng).
+        \item Chọn nước đi theo cơ chế nút con vững chắc (robust child selection) có số lượt thăm cao nhất.
+        \item Cài đặt hàm \texttt{\_release\_\allowbreak tree()} giải phóng tường minh toàn bộ cây tìm kiếm sau mỗi nước đi, bẻ gãy các tham chiếu vòng cha-con, loại bỏ hoàn toàn hiện tượng rò rỉ bộ nhớ hoặc giật lag do chu kỳ dọn rác (Garbage Collection).
+        \item \textit{Kết quả kiểm chứng:} Trên bàn $4 \times 4, K=4$ ($N=40$ ván), \texttt{MCTSAgent} ($n=200$ simulations) thắng áp đảo 100\% trước \texttt{RandomAgent} ($\text{Score} = 1.000$) và thủ hòa tuyệt đối 100\% ($0-40-0, \text{Score} = 0.500$) trước cả \texttt{RuleBasedAgent} và \texttt{AlphaBetaAgent} ($d=4$).
+    \end{itemize}
+    \item \textbf{Bộ kiểm thử hợp đồng, tích hợp \& Giải đấu Sprint 2 (T2.5):}
+    \begin{itemize}
+        \item \textit{Kiểm thử hợp đồng và tìm kiếm đối kháng:} Hoàn thiện bộ kiểm thử \texttt{tests/\allowbreak test\_\allowbreak agents\_\allowbreak contract.py} và \texttt{tests/\allowbreak test\_\allowbreak search\_\allowbreak agents.py} đạt tỷ lệ hoàn thành 100\% (45/45 passed). Khi kết hợp cùng các bộ kiểm thử đơn vị cho từng tác tử trong Sprint~2 gồm: \texttt{test\_\allowbreak base\_\allowbreak agent.py} (27 passed), \texttt{test\_\allowbreak level1\_\allowbreak level2\_\allowbreak agents.py} (16 passed), \texttt{test\_\allowbreak minimax\_\allowbreak agent.py} (14 passed) và \texttt{test\_\allowbreak mcts\_\allowbreak agent.py} (34 passed), Sprint~2 đã đóng góp thêm 136 bài kiểm thử mới, nâng tổng số bài kiểm thử tự động tích lũy của toàn bộ dự án lên \textbf{216 bài kiểm thử vượt qua tuyệt đối (216 passed)} chỉ trong $7.09\text{s}$.
+        \item \textit{Giải đấu Round-Robin nội bộ 4 cấp độ (T2.5-SPRINT2-RR):} Tổ chức giải đấu Paired Round-Robin cân bằng trên cấu hình chuẩn $4 \times 4, K=4$ giữa 4 cấp độ tác tử (Cấp 1: \texttt{Random}, Cấp 2: \texttt{RuleBased}, Cấp 3: \texttt{AlphaBeta} $d=4, 50\text{ ms}$, Cấp 4: \texttt{MCTS} $200\text{ sims}, 50\text{ ms}$). Giải đấu gồm 6 cặp đấu đối đầu, mỗi cặp thi đấu 20 ván (10 ván cầm $X$, 10 ván cầm $O$, tổng cộng 120 ván). Kết quả thực nghiệm ghi nhận:
+        \begin{itemize}
+            \item Cả 3 tác tử Cấp 2, Cấp 3 và Cấp 4 đều đạt thành tích \textbf{bất bại tuyệt đối (0 ván thua)} trong suốt giải đấu.
+            \item Điểm số tổng kết: Cấp 1 đạt $\text{Score} = 0.075$ ($0$ thắng, $9$ hòa, $51$ thua, độ trễ trung bình $0.028\text{ ms}$); Cấp 2 đạt $\text{Score} = 0.650$ ($18$ thắng, $42$ hòa, $0$ thua, độ trễ $0.065\text{ ms}$); Cấp 3 đạt $\text{Score} = 0.625$ ($15$ thắng, $45$ hòa, $0$ thua, độ trễ $10.706\text{ ms}$); Cấp 4 đạt $\text{Score} = 0.650$ ($18$ thắng, $42$ hòa, $0$ thua, độ trễ $15.857\text{ ms}$).
+            \item Đáng chú ý, mọi ván đấu đối đầu trực tiếp giữa các tác tử Cấp 2, Cấp 3 và Cấp 4 đều kết thúc với kết quả hòa tuyệt đối 100\% ($0-20-0, \text{Score} = 0.500$), chứng minh tính ổn định phòng thủ và năng lực chiến thuật chặt chẽ của các tác tử trên bàn cờ mở rộng $4 \times 4, K=4$.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsection{Bảng Tổng hợp Tiến độ Chi tiết Theo Hạng mục Công việc}
+Bảng~\ref{tab:progress_tasks} tổng hợp chi tiết trạng thái thực hiện của toàn bộ các hạng mục công việc trong dự án tính đến thời điểm hiện tại:
+
+\begin{table}[H]
+\centering
+\small
+\caption{Bảng tổng hợp tiến độ thực hiện các hạng mục công việc của dự án}
+\label{tab:progress_tasks}
+\vspace{0.2cm}
+\begin{tabular}{cp{6.0cm}p{4.6cm}cc}
+\toprule
+\textbf{Mã} & \textbf{Nội dung công việc} & \textbf{Thuật toán / Kỹ thuật} & \textbf{Trạng thái} & \textbf{Tỷ lệ} \\
+\midrule
+\multicolumn{5}{l}{\textbf{Sprint 1: Hạ tầng Lõi \& Game Engine Tổng quát}} \\
+T1.1 & Cấu hình YAML, Dataclasses \& Seed & Reproducibility config & Hoàn thành & 100\% \\
+T1.2 & Luật chơi $O(K)$, Canonical, Weights & Bit/Window operations & Hoàn thành & 100\% \\
+T1.3 & Lớp Game \texttt{ExtendedTicTacToe} & 7+1 Game API, $O(1)$ Undo & Hoàn thành & 100\% \\
+T1.4 & Kiểm thử toàn diện lõi Game Engine & Pytest (29 passed, full S1 80 passed) & Hoàn thành & 100\% \\
+\midrule
+\multicolumn{5}{l}{\textbf{Sprint 2: Tác tử Baseline \& Tìm kiếm Cổ điển (Cấp 1--4)}} \\
+T2.1 & Giao ước \texttt{BaseAgent} \& Telemetry & \texttt{AgentDecision}, Perf counter & Hoàn thành & 100\% \\
+T2.2 & Cấp 1 (\texttt{Random}) \& Cấp 2 (\texttt{RuleBased}) & Newell \& Simon 6 tầng luật & Hoàn thành & 100\% \\
+T2.3 & Cấp 3 (\texttt{Minimax} / \texttt{AlphaBeta}) & Negamax, AB cut, Move order & Hoàn thành & 100\% \\
+T2.4 & Cấp 4 (\texttt{MCTSAgent} UCT 4 pha) & UCT Selection, Tree release & Hoàn thành & 100\% \\
+T2.5 & Kiểm thử hợp đồng \& Round-Robin S2 & Pytest (45 passed, full S2 216 passed) & Hoàn thành & 100\% \\
+\midrule
+\multicolumn{5}{l}{\textbf{Sprint 3: Tác tử Học sâu, Học tăng cường \& Mô hình lai (Cấp 5--7)}} \\
+T3.1 & Mạng PyTorch Policy, Value, DQN & CNN + MLP, Action Masking & Chưa làm & 0\% \\
+T3.2 & Sinh dữ liệu Expert \& Train Cấp 5 & Game-id split, Supervised & Chưa làm & 0\% \\
+T3.3 & Huấn luyện Cấp 6 (Tabular Q \& DQN) & Self-play, Replay, 3 seeds & Chưa làm & 0\% \\
+T3.4 & Tích hợp Cấp 7 (\texttt{HybridMCTSAgent}) & PUCT, Prior cache, Mixed eval & Chưa làm & 0\% \\
+\midrule
+\multicolumn{5}{l}{\textbf{Sprint 4: Giải đấu Paired Round-Robin \& 4 Ablations}} \\
+T4.1 & Bộ vận hành giải đấu \texttt{TournamentRunner} & Paired 50/50 X/O, JSONL log & Chưa làm & 0\% \\
+T4.2 & Thống kê Metrics \& Khoảng tin cậy 95\% & Wilson Score \& Bootstrap CI & Chưa làm & 0\% \\
+T4.3 & Giải đấu chính thức $4 \times 4$ \& $3 \times 3$ & Fixed Budget \& Default modes & Chưa làm & 0\% \\
+T4.4 & Thực thi 4 kịch bản Ablation & Trả lời RQ1, RQ2, RQ3 & Chưa làm & 0\% \\
+\midrule
+\multicolumn{5}{l}{\textbf{Sprint 5: Giao diện Rich CLI, Trực quan hóa \& Đóng gói Báo cáo}} \\
+T5.1 & Rich CLI Demo tương tác trực quan & Heatmap, Top-K moves, Undo & Chưa làm & 0\% \\
+T5.2 & Pipeline vẽ 5 bộ biểu đồ báo cáo & Matplotlib PNG (300 DPI) & Chưa làm & 0\% \\
+T5.3 & Báo cáo cuối kỳ, README \& Rubric & Comprehensive documentation & Chưa làm & 0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Cơ sở Toán học \& Thuật toán Cốt lõi Đã Cài đặt}
+
+\subsubsection{Hàm Lượng giá Heuristic Tĩnh (\texttt{evaluate\_board})}
+Để đánh giá chất lượng của các trạng thái bàn cờ không phải trạng thái kết thúc (non-terminal states) tại các nút lá của cây tìm kiếm Minimax/Alpha-Beta, hệ thống xây dựng hàm lượng giá Heuristic $f(s)$ dựa trên tập hợp tất cả các cửa sổ thắng khả dĩ $\mathcal{W}$ có độ dài $K$ được tiền tính toán qua \texttt{precompute\_win\_windows(M, N, K)}.
+
+Với mỗi trạng thái $s$ và người chơi mục tiêu $p \in \{+1, -1\}$ (với $\bar{p} = -p$ là đối thủ):
+\begin{equation}
+f(s, p) = \begin{cases}
++10.0 & \text{nếu } s \text{ là trạng thái thắng của } p \\
+-10.0 & \text{nếu } s \text{ là trạng thái thua của } p \\
+0.0 & \text{nếu } s \text{ là trạng thái hòa (bàn đầy)} \\
+\tanh\left(\frac{\text{raw\_score}(s, p)}{10^{\max(1, K-1)}}\right) & \text{nếu } s \text{ chưa kết thúc}
+\end{cases}
+\end{equation}
+
+Trong đó, điểm thô $\text{raw\_score}(s, p)$ được tính bằng tổng điểm của tất cả các cửa sổ thắng mở:
+\begin{equation}
+\text{raw\_score}(s, p) = \sum_{W \in \mathcal{W}} \text{score}(W, p)
+\end{equation}
+
+Quy tắc chấm điểm cho từng cửa sổ $W$ dựa trên số quân hiện có của người chơi ($c(W, p)$) và của đối thủ ($c(W, \bar{p})$):
+\begin{equation}
+\text{score}(W, p) = \begin{cases}
++10^{c(W, p) - 1} & \text{nếu } c(W, p) \ge 1 \text{ và } c(W, \bar{p}) = 0 \\
+-10^{c(W, \bar{p}) - 1} & \text{nếu } c(W, \bar{p}) \ge 1 \text{ và } c(W, p) = 0 \\
+0 & \text{ngược lại (cửa sổ bị chặn bởi cả hai bên)}
+\end{cases}
+\end{equation}
+
+Hàm $\tanh(x)$ đóng vai trò nén phi tuyến giá trị điểm thô về khoảng $(-1.0, 1.0)$. Kỹ thuật này bảo đảm tuyệt đối rằng điểm đánh giá Heuristic tại các nút lá trung gian không bao giờ vượt qua hoặc chồng lấn với điểm thưởng/phạt kết thúc ván đấu ($\pm 10.0$).
+
+\subsubsection{Thuật toán Tìm kiếm Đối kháng Negamax kết hợp Cắt tỉa Alpha-Beta}
+Thuật toán tìm kiếm Cấp 3 được xây dựng theo khuôn dạng Negamax. Tính chất đối kháng tổng bằng không cho phép tối giản hóa việc phân nhánh Max/Min thành biểu thức thống nhất:
+\begin{equation}
+\text{Negamax}(s, d, \alpha, \beta) = \max_{a \in \text{legal}(s)} \left\{ -\text{Negamax}(s', d - 1, -\beta, -\alpha) \right\}
+\end{equation}
+trong đó $s' = \text{step}(s, a)$ và điều kiện cắt tỉa Alpha-Beta được kích hoạt khi $\alpha \ge \beta$.
+
+Để tối ưu hóa số lượng nhánh bị cắt tỉa, thuật toán áp dụng cơ chế sắp xếp nước đi (Move Ordering) trước khi duyệt vòng lặp con:
+\begin{equation}
+\text{Priority}(a) = \left( \mathbb{I}(a = a_{\text{PV}}), \, \text{PositionalWeight}(a), \, -a \right)
+\end{equation}
+Nước đi thuộc chuỗi tối ưu của độ sâu trước ($a_{\text{PV}}$) được ưu tiên duyệt đầu tiên, tiếp theo là các ô có trọng số vị trí cao nhất (nhiều cửa sổ thắng $K$ đi qua nhất). Kỹ thuật này giúp thuật toán Alpha-Beta tiến sát đến hiệu năng lý tưởng $O(b^{d/2})$ thay vì $O(b^d)$ của Minimax thuần túy.
+
+\subsubsection{Thuật toán Tìm kiếm Cây Monte Carlo (MCTS - Cấp 4)}
+Trong \texttt{MCTSAgent}, tại mỗi nút cha $s$ đã mở rộng đầy đủ các nhánh con, thuật toán lựa chọn hành động $a$ theo công thức UCT (Upper Confidence Bound for Trees):
+\begin{equation}
+\text{UCT}(s, a) = Q(s, a) + c_{\text{uct}} \sqrt{\frac{\ln N(s)}{N(s, a)}}
+\end{equation}
+với:
+\begin{itemize}
+    \item $Q(s, a) = \frac{W(s, a)}{N(s, a)}$: Giá trị ước lượng trung bình (thành phần Khai thác - Exploitation) tích lũy từ góc nhìn của người chơi vừa thực hiện hành động $a$.
+    \item $c_{\text{uct}} \sqrt{\frac{\ln N(s)}{N(s, a)}}$: Độ bất định thống kê (thành phần Khám phá - Exploration), với $c_{\text{uct}} = \sqrt{2}$.
+    \item $N(s)$ và $N(s, a)$: Lần lượt là tổng số lượt thăm của nút cha $s$ và nút con $(s, a)$.
+\end{itemize}
+
+Sau khi hoàn tất $n_{\text{simulations}}$ lượt mô phỏng, tác tử áp dụng tiêu chuẩn lựa chọn nút con vững chắc (\textit{robust child}):
+\begin{equation}
+a^* = \arg\max_{a \in \text{legal}(s)} N(s, a)
+\end{equation}
+và giải phóng bộ nhớ toàn bộ cấu trúc cây thông qua hàm \texttt{\_release\_tree()}.
+
+\clearpage
+\section{Khó khăn, Thách thức Kỹ thuật \& Giải pháp}
+
+\subsection{Vấn đề Bùng nổ Không gian Trạng thái (Combinatorial Explosion)}
+Thách thức kỹ thuật lớn nhất khi chuyển dịch từ Tic-Tac-Toe truyền thống ($3 \times 3, K=3$) sang Extended Tic-Tac-Toe ($4 \times 4, K=4$) nằm ở sự gia tăng đột biến của không gian tìm kiếm.
+\begin{itemize}
+    \item \textbf{So sánh độ phức tạp không gian:} Bàn cờ $3 \times 3$ có 9 ô vuông, tương ứng tối đa $3^9 = 19{,}683$ trạng thái và cây tìm kiếm có tối đa $9! \approx 3.6 \times 10^5$ nhánh đi. Trong khi đó, bàn cờ $4 \times 4$ có 16 ô vuông, nâng số cấu hình bàn cờ khả dĩ lên đến $3^{16} \approx 4.3 \times 10^7$ và cây tìm kiếm đạt tối đa $16! \approx 2.09 \times 10^{13}$ chuỗi nước đi.
+    \item \textbf{Hệ quả đối với thuật toán tìm kiếm:} Hệ số phân nhánh trung bình $b$ ở đầu ván đấu trên bàn $4 \times 4$ là 16 (thay vì 9 trên bàn $3 \times 3$). Với hệ số phân nhánh này, thuật toán Minimax vét cạn ở độ sâu $d=4$ phải duyệt qua xấp xỉ $16 \times 15 \times 14 \times 13 = 43{,}680$ nút lá. Nếu tăng lên độ sâu $d=6$, số lượng nút cần khảo sát vượt quá 5.7 triệu nút, khiến việc tìm kiếm vét cạn trong thời gian thực trở nên hoàn toàn bất khả thi.
+\end{itemize}
+
+\subsection{Ràng buộc Thời gian Phản hồi (Time Constraints per Move)}
+Trong môi trường thi đấu đối kháng công bằng và giao diện người dùng tương tác thực tế, mỗi tác tử AI bị khống chế chặt chẽ trong một ngân sách thời gian hữu hạn:
+\begin{itemize}
+    \item Ngân sách khống chế tiêu chuẩn: $10\text{ ms/nước}$ cho chế độ phản hồi nhanh và $50\text{ ms/nước}$ cho chế độ tìm kiếm chiến thuật sâu.
+    \item Nếu tác tử không có cơ chế quản lý thời gian chủ động, việc phân nhánh sâu sẽ dẫn đến hiện tượng quá tải CPU, gây ra lỗi vượt ngưỡng thời gian (timeout) hoặc sụp đổ tiến trình thi đấu giải đấu Round-Robin hàng nghìn ván.
+\end{itemize}
+
+\subsection{Các Giải pháp Kỹ thuật Tối ưu Đã Triển khai}
+Để giải quyết triệt để hai thách thức cốt lõi nêu trên, nhóm nghiên cứu đã thiết kế và tích hợp đồng bộ các giải pháp tối ưu hóa cấp thấp:
+
+\begin{enumerate}[leftmargin=1.5cm]
+    \item \textbf{Cơ chế chuyển trạng thái $O(1)$ với cặp thao tác \texttt{step()} / \texttt{undo()}:}
+    Trong các thuật toán tìm kiếm cây truyền thống, việc gọi phương thức tạo bản sao sâu (\texttt{clone()}) tại mỗi bước phân nhánh đệ quy tiêu tốn tài nguyên bộ nhớ rất lớn và kích hoạt bộ dọn rác (Garbage Collector) liên tục, gây ra các đỉnh trễ (latency spikes). Đồ án giải quyết vấn đề này bằng cách chỉ sao chép một bản duy nhất tại nút gốc (\texttt{sim = game.clone()}), sau đó thực hiện duyệt cây hoàn toàn bằng cặp phương thức \texttt{step(action)} và \texttt{undo()} với độ phức tạp $O(1)$ trên một mảng \texttt{numpy} nguyên khối. Giải pháp này giúp triệt tiêu hoàn toàn chi phí cấp phát bộ nhớ động trên heap.
+
+    \item \textbf{Kỹ thuật sắp xếp nước đi (Move Ordering) đa tầng:}
+    Hiệu quả của thuật toán cắt tỉa Alpha-Beta phụ thuộc mang tính quyết định vào thứ tự duyệt các nước đi con. Nhóm đã tích hợp bộ lọc sắp xếp nước đi kết hợp:
+    \begin{itemize}
+        \item Nước đi thuộc nhánh chính tối ưu (Principal Variation) từ độ sâu tìm kiếm trước đó được đưa lên vị trí ưu tiên số 1.
+        \item Các nước đi còn lại được sắp xếp giảm dần theo ma trận trọng số vị trí tĩnh \texttt{positional\_weights} (số lượng cửa sổ thắng $K$ đi qua ô cờ đó).
+    \end{itemize}
+    Thực nghiệm trên bàn $4 \times 4, K=4$ ở độ sâu $d=4$ chứng minh: kỹ thuật này đã giúp Alpha-Beta cắt giảm số nút duyệt từ $47{,}297$ nút xuống còn $1{,}941$ nút (\textbf{tiết kiệm 95.9\% khối lượng tính toán}), đưa thời gian suy luận từ $523.16\text{ ms}$ xuống còn $50.67\text{ ms}$, hoàn toàn đáp ứng được ngưỡng thời gian $50\text{ ms/nước}$.
+
+    \item \textbf{Iterative Deepening kết hợp kiểm tra Deadline định kỳ:}
+    Tác tử Cấp 3 được lập trình theo cơ chế tìm kiếm tăng dần độ sâu $d = 1, 2, \dots, d_{\max}$. Trong suốt quá trình duyệt đệ quy, tác tử kiểm tra đồng hồ \texttt{time.\allowbreak perf\_\allowbreak counter()} định kỳ mỗi 256 nút duyệt thông qua phép toán bit siêu tốc (\texttt{nodes\_\allowbreak visited \& 255 == 0}). Khi phát hiện thời gian chạm ngưỡng \texttt{deadline}, hệ thống chủ động ném ngoại lệ nội bộ \texttt{SearchTimeoutError}, lập tức hủy bỏ nhánh tìm kiếm dang dở và hoàn trả an toàn nước đi tối ưu của độ sâu hoàn chỉnh gần nhất.
+
+    \item \textbf{Cơ chế giải phóng bộ nhớ MCTS chủ động (\texttt{\_release\_\allowbreak tree}):}
+    Trong ngôn ngữ Python, các nút trong cây MCTS tham chiếu lẫn nhau (nút cha giữ từ điển các nút con, nút con giữ con trỏ tới nút cha) tạo thành các chu trình tham chiếu (cyclic references) mà cơ chế đếm tham chiếu (reference counting) thông thường không thể tự động thu hồi ngay. Nhóm đã xây dựng hàm \texttt{\_release\_\allowbreak tree()} duyệt qua toàn bộ cây theo dạng ngăn xếp, chủ động ngắt mọi liên kết cha-con và dọn sạch danh sách hành động ngay sau khi chọn nước đi. Kỹ thuật này giúp bộ nhớ tiến trình duy trì ổn định, ngăn chặn hoàn toàn hiện tượng tràn RAM khi mô phỏng hàng trăm nghìn ván đấu.
+
+    \item \textbf{Chuẩn hóa không gian trạng thái (Canonical Board Representation):}
+    Tất cả các thuật toán và mô hình học máy đều thao tác trên trạng thái bàn cờ chuẩn hóa: $s_{\text{canon}} = \text{board} \times \text{current\_player}$. Phép biến đổi này giúp chuyển đổi mọi góc nhìn về trạng thái của người chơi hiện tại ($+1$), giảm một nửa kích thước bảng Q-table trong Tabular Q-learning và giúp mạng nơ-ron Policy/Value học tổng quát hóa nhanh hơn mà không cần nhân đôi kích thước dữ liệu.
+\end{enumerate}
+
+\clearpage
+\section{Kế hoạch Giai đoạn Kế tiếp}
+
+\subsection{Kế hoạch Triển khai Chi tiết theo Sprint}
+Dự án tiếp tục bám sát lộ trình 5 Sprint đã đề ra trong tài liệu quản lý công việc \texttt{TASKS.md}, tập trung hoàn thành các phân hệ học máy và thực nghiệm khoa học trong các ngày tiếp theo:
+
+\subsubsection{Sprint 3: Tác tử Học sâu, Học tăng cường \& Mô hình lai (Cấp 5--7)}
+\begin{itemize}
+    \item \textbf{T3.1 -- Cài đặt kiến trúc mạng nơ-ron PyTorch \& Checkpoint I/O:}
+    Xây dựng các lớp mô hình trong \texttt{nn\_models.py} hỗ trợ đầu vào tensor tổng quát $(B, 1, M, N)$:
+    \begin{itemize}
+        \item \texttt{FastPolicyNet}: Kiến trúc mạng tích chập nhẹ gồm 1 lớp \texttt{Conv2d(1, 128, kernel=3, padding=1)} kết hợp 2 lớp ẩn \texttt{Linear(64)}, đầu ra Softmax trên $M \times N$ hành động, tối ưu hóa cho tốc độ suy luận cực nhanh.
+        \item \texttt{StrongPolicyNet}: Tăng cường độ sâu với 3 lớp ẩn \texttt{Linear(64)} phục vụ làm mạng Policy chính và cung cấp xác suất tiên nghiệm cho MCTS Cấp 7.
+        \item \texttt{ValueNet}: Mạng đánh giá trạng thái với đầu ra hàm kích hoạt $\tanh$ thuộc $[-1, +1]$.
+        \item \texttt{DQNNet}: Mạng xấp xỉ hàm giá trị hành động Q-value cho học tăng cường.
+        \item Cơ chế \textbf{Action Masking}: Gán logit âm vô cùng ($-10^9$) cho các ô không hợp lệ trước khi đưa qua lớp Softmax.
+        \item Module \texttt{checkpoint\_io.py}: Lưu và nạp trọng số kèm file metadata \texttt{*.meta.json} nhằm xác thực cấu hình bàn cờ, thông số huấn luyện và mã băm SHA-256.
+    \end{itemize}
+    \item \textbf{T3.2 -- Pipeline sinh dữ liệu chuyên gia \& Huấn luyện Cấp 5:}
+    Xây dựng module \texttt{dataset\_gen.py} sinh tối thiểu $10{,}000$ ván đấu giữa \texttt{AlphaBetaAgent} và \texttt{RuleBasedAgent} (kèm nhiễu mở màn để tăng độ đa dạng không gian). Thực hiện phân chia tập \texttt{train / val / test} theo tỷ lệ $70\% / 15\% / 15\%$ nghiêm ngặt theo cấp độ ván đấu (\texttt{game\_id}) nhằm chống rò rỉ dữ liệu. Huấn luyện \texttt{FastPolicyNet}, \texttt{StrongPolicyNet} và \texttt{ValueNet} trên $4 \times 4, K=4$ và $3 \times 3, K=3$.
+    \item \textbf{T3.3 -- Huấn luyện Tác tử Học tăng cường Cấp 6 (RL):}
+    Cài đặt \texttt{TabularQAgent} cho $3 \times 3, K=3$ và \texttt{DQNAgent} tự chơi (Self-play) trên bàn $4 \times 4, K=4$. Tích hợp bộ đệm trải nghiệm (Experience Replay Buffer), mạng mục tiêu (Target Network) và tập hợp đối thủ hỗn hợp (Mixed Opponent Pool: 70\% tự chơi snapshot quá khứ + 30\% đối thủ Rule-based/Random) để chống quên thảm họa (catastrophic forgetting). Huấn luyện độc lập qua \textbf{3 random seeds} để theo dõi độ ổn định.
+    \item \textbf{T3.4 -- Tích hợp Mô hình lai Cấp 7 (\texttt{HybridMCTSAgent}):}
+    Xây dựng thuật toán MCTS dẫn hướng bằng mạng nơ-ron lấy cảm hứng từ AlphaGo:
+    \begin{equation}
+    \text{PUCT}(s, a) = Q(s, a) + c_{\text{puct}} \cdot P(s, a) \cdot \frac{\sqrt{\sum_{b} N(s, b)}}{1 + N(s, a)}
+    \end{equation}
+    Tích hợp bộ nhớ đệm LRU Cache lưu trữ kết quả suy luận $(P(s, \cdot), V(s))$ theo chuỗi byte bàn cờ chuẩn hóa để triệt tiêu độ trễ chuyển giao tensor CPU-GPU; hỗ trợ 2 chế độ đánh giá lá (\texttt{rollout} ngẫu nhiên và \texttt{mixed} kết hợp giá trị từ \texttt{ValueNet}) để phục vụ thực nghiệm RQ1.
+\end{itemize}
+
+\subsubsection{Sprint 4: Hệ thống Giải đấu Paired Round-Robin \& 4 Thí nghiệm Ablation}
+\begin{itemize}
+    \item \textbf{T4.1 -- Vận hành \texttt{TournamentRunner}:} Tổ chức thi đấu Paired Round-Robin (mỗi cặp đối đầu thi đấu 200 ván: 100 ván làm quân $X$, 100 ván làm quân $O$ trên cùng tập seed). Ghi log toàn diện ra định dạng chuẩn JSONL (\texttt{logs/*.jsonl}) gồm thông số phần cứng, từng nước đi, độ trễ và số nút duyệt.
+    \item \textbf{T4.2 -- Xây dựng công cụ thống kê \texttt{metrics.py}:} Cài đặt các hàm tính toán chỉ số điểm số $\text{Score} = \frac{W + 0.5 \times D}{N}$, ước lượng khoảng tin cậy 95\% Wilson Score cho tỷ lệ thắng, khoảng tin cậy 95\% Bootstrap (10,000 lần lặp) cho $\text{Score}$ và $\Delta\text{Score}$, cùng độ trễ nước đi phân vị ($p95$).
+    \item \textbf{T4.3 -- Vận hành giải đấu chính thức:} Chạy giải đấu đầy đủ 7 cấp độ trên $4 \times 4, K=4$ ở cả 2 chế độ: Ngân sách thời gian cố định ($10\text{ ms}$, $50\text{ ms}$) và Cấu hình mặc định; đối chứng với giải đấu trên $3 \times 3, K=3$.
+    \item \textbf{T4.4 -- Thực thi 4 kịch bản Ablation chuyên sâu:}
+    \begin{itemize}
+        \item \textit{Ablation 1:} Đánh giá đóng góp độc lập của việc bật/tắt cắt tỉa Alpha-Beta và bật/tắt sắp xếp nước đi Move Ordering trên cùng độ sâu.
+        \item \textit{Ablation 2 (Trả lời RQ1):} So sánh \texttt{Policy-only} vs. \texttt{Pure MCTS} vs. \texttt{Hybrid MCTS} tại các mốc mô phỏng $n \in \{50, 150, 400\}$ và ngân sách thời gian $10\text{ ms}$, $50\text{ ms}$.
+        \item \textit{Ablation 3 (Trả lời RQ2):} Phân tích độ lệch lợi thế đi trước $\Delta\text{Score}$ theo cấp độ AI trên $3 \times 3, K=3$; $4 \times 4, K=3$ và $4 \times 4, K=4$.
+        \item \textit{Ablation 4 (Trả lời RQ3):} So sánh độ ổn định và khả năng tổng quát hóa của \texttt{RL Self-play} vs. \texttt{Supervised Policy} qua 3 random seeds khi đối đầu với tập đối thủ unseen.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Sprint 5: Hoàn thiện Giao diện Rich CLI, Báo cáo \& Đóng gói Dự án}
+\begin{itemize}
+    \item \textbf{T5.1 -- Giao diện tương tác \texttt{Rich CLI}:} Hoàn thiện giao diện dòng lệnh chuyên nghiệp với bảng điều khiển trực quan: bàn cờ màu sắc nét, tô sáng nước đi vừa đánh và đường thắng $K$ quân; bảng chỉ số giải thích quyết định (Explainability Panel) hiển thị thời gian suy nghĩ, số nút duyệt, độ sâu đạt được, phân phối xác suất tiên nghiệm $P(s, a)$ và heatmap giá trị Q-value/số lượt thăm trực tiếp trên terminal; hỗ trợ chế độ Người--Máy và Máy--Máy.
+    \item \textbf{T5.2 -- Tự động kết xuất biểu đồ khoa học:} Hoàn thiện module \texttt{visualizer.py} đọc trực tiếp từ log thô JSONL để sinh 5 bộ biểu đồ báo cáo chuẩn khoa học (300 DPI): Heatmap đối đầu ma trận, biểu đồ phân phối độ trễ $p95$, đường cong học tập đa seed, và các biểu đồ phân tích thành phần Ablation.
+    \item \textbf{T5.3 -- Hoàn thiện báo cáo khoa học cuối kỳ:} Viết báo cáo tổng kết chi tiết, tài liệu hướng dẫn tái lập kết quả \texttt{README.md} chỉ với 1 câu lệnh, và kiểm tra chéo toàn diện với bảng tiêu chí đánh giá (Rubric) 100 điểm của học phần.
+\end{itemize}
+
+\subsection{Bảng Kế hoạch Chi tiết \& Mốc Thời gian Triển khai (Milestone Schedule)}
+Bảng~\ref{tab:schedule} thể hiện kế hoạch phân bổ thời gian chi tiết cho các giai đoạn còn lại của đồ án:
+
+\begin{table}[H]
+\centering
+\small
+\caption{Kế hoạch tiến độ thực hiện chi tiết các giai đoạn kế tiếp}
+\label{tab:schedule}
+\vspace{0.2cm}
+\begin{tabular}{lp{6.2cm}cp{3.8cm}}
+\toprule
+\textbf{Giai đoạn} & \textbf{Hạng mục công việc trọng tâm} & \textbf{Thời hạn} & \textbf{Sản phẩm bàn giao} \\
+\midrule
+\textbf{Sprint 3} & Cài đặt mạng PyTorch Policy \& Value & 16/11/2026 & File \texttt{nn\_models.py}, \texttt{checkpoint\_io.py} \\
+(Ngày 1) & Sinh dataset expert ($10{,}000$ ván) \& Train Cấp 5 & 16/11/2026 & Checkpoint Cấp 5 kèm \texttt{meta.json} \\
+          & Huấn luyện Tabular Q ($3 \times 3$) \& DQN ($4 \times 4$) & 16/11/2026 & Checkpoints đa seed (3 seeds) \\
+          & Hiện thực hóa Cấp 7 \texttt{HybridMCTSAgent} & 16/11/2026 & \texttt{hybrid\_mcts\_agent.py}, test pass \\
+\midrule
+\textbf{Sprint 4} & Hoàn thiện \texttt{TournamentRunner} \& Metrics & 17/11/2026 & Module benchmark, unit tests \\
+(Ngày 2) & Vận hành giải đấu Paired Round-Robin & 17/11/2026 & File log thô \texttt{tournament\_*.jsonl} \\
+          & Thực thi 4 kịch bản Ablation (RQ1, RQ2, RQ3) & 17/11/2026 & Dữ liệu thực nghiệm 4 ablations \\
+\midrule
+\textbf{Sprint 5} & Hoàn thiện giao diện demo Rich CLI & 18/11/2026 & Script \texttt{scripts/play.py} \\
+(Ngày 3) & Xuất 5 bộ biểu đồ báo cáo khoa học & 18/11/2026 & Bộ hình ảnh 300 DPI, summary CSV \\
+          & Hoàn thiện Báo cáo tổng kết \& Đóng gói & 18/11/2026 & Báo cáo LaTeX hoàn chỉnh, README \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+\section{Đánh giá Tổng quan}
+
+\subsection{Tỷ lệ Hoàn thành Khối lượng Đồ án Hiện tại}
+Dự án đã hoàn thành đúng lộ trình kỹ thuật cụ thể như sau:
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{Khối lượng triển khai hạ tầng cốt lõi (Sprint 1):} Hoàn thành \textbf{100\%} (4/4 nhiệm vụ kỹ thuật: T1.1 đến T1.4). Bộ kiểm thử lõi trò chơi đạt $29/29$ bài kiểm thử vượt qua tuyệt đối.
+    \item \textbf{Khối lượng triển khai tác tử cổ điển (Sprint 2):} Hoàn thành \textbf{100\%} (5/5 nhiệm vụ kỹ thuật: T2.1 đến T2.5). Cả 4 cấp độ tác tử AI (Random, Rule-based, Minimax/Alpha-Beta, MCTS) đã vận hành ổn định, chính xác. Bộ kiểm thử tích hợp đạt $45/45$ bài kiểm thử vượt qua.
+    \item \textbf{Khối lượng triển khai kỹ thuật trực tiếp (Coding \& Testing Tasks):} Đã hoàn thành \textbf{9 / 20 nhiệm vụ kỹ thuật cốt lõi} (tương đương \textbf{45.0\%} tổng khối lượng lập trình và thực nghiệm của toàn dự án).
+\end{itemize}
+
+\subsection{Nhận định \& Đánh giá Chất lượng Kỹ thuật}
+Quá trình triển khai đồ án đã đạt được các tiêu chuẩn chất lượng kỹ thuật cao:
+\begin{enumerate}[leftmargin=1.5cm]
+    \item \textbf{Độ tin cậy và Tính đúng đắn của Hệ thống:}
+    Hệ thống sở hữu bộ kiểm thử tự động toàn diện với \textbf{216 bài kiểm thử đơn vị và kiểm thử hợp đồng đã vượt qua hoàn toàn (100\% pass)} chỉ trong $7.09$ giây. Toàn bộ mã nguồn tuân thủ tuyệt đối các quy tắc kiểm tra kiểu tĩnh (Type Annotations) và định dạng chuẩn PEP 8 thông qua công cụ \texttt{ruff}. Nhật ký lỗi kỹ thuật (\texttt{Bug \& Issue Log}) hiện chưa ghi nhận bất kỳ lỗi phát sinh nghiêm trọng nào chưa được xử lý.
+    \item \textbf{Hiệu năng Tối ưu Hóa Vượt trội:}
+    Các giải pháp tối ưu hóa bộ nhớ và thuật toán tìm kiếm đã phát huy hiệu quả thực tế rõ rệt: cơ chế chuyển đổi trạng thái $O(1)$ thông qua \texttt{step()}/\texttt{undo()} giúp triệt tiêu gánh nặng cấp phát bộ nhớ; kỹ thuật sắp xếp nước đi Move Ordering kết hợp cắt tỉa Alpha-Beta cắt giảm tới \textbf{95.9\%} số nút duyệt trên bàn cờ mở rộng $4 \times 4, K=4$; cơ chế Iterative Deepening giúp khống chế nghiêm ngặt độ trễ suy luận trong giới hạn cho phép; và cơ chế \texttt{\_release\_tree()} trong MCTS giải quyết triệt để bài toán rò rỉ bộ nhớ.
+    \item \textbf{Nền tảng Vững chắc cho Giai đoạn Học máy:}
+    Kiến trúc phân lớp lỏng lẻo (\texttt{engine}, \texttt{agents}, \texttt{training}, \texttt{benchmark}, \texttt{ui}) cùng hợp đồng Game API chuẩn mực đã tạo ra một giao diện giao tiếp cực kỳ trong sáng và nhất quán. Đây là bệ phóng kỹ thuật vững chắc để bước vào Sprint 3 -- giai đoạn xây dựng và huấn luyện các mô hình học sâu (Policy/Value Networks), học tăng cường tự chơi (DQN Self-play) và mô hình lai AlphaGo-inspired một cách thuận lợi, bảo đảm tiến độ hoàn thành xuất sắc toàn bộ mục tiêu đề tài đúng hạn.
+\end{enumerate}
+
+\end{document}

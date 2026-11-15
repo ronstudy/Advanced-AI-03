@@ -59,7 +59,7 @@ Tài liệu này quy định các **nguyên tắc bắt buộc** trong suốt qu
    - Mỗi phiên giải đấu phải tự động ghi metadata hệ thống vào đầu file log: CPU model, số nhân, GPU (nếu có), dung lượng RAM, phiên bản Python/PyTorch/NumPy, git commit hash (nếu có) và toàn bộ siêu tham số của từng tác tử.
 4. **Tính chuẩn xác thống kê:**
    - Mỗi cặp đối đầu trong giải đấu Round-Robin phải thi đấu tối thiểu **100 ván** (mục tiêu chuẩn **200 ván/cặp**), chia chính xác **50% đi trước (`X`) và 50% đi sau (`O`)**.
-   - Bắt buộc tính `score = (W + 0.5 * D) / N` và khoảng tin cậy **95% (Wilson hoặc Bootstrap)** trước khi rút ra kết luận so sánh cho RQ3, RQ4, RQ5.
+   - Bắt buộc tính `score = (W + 0.5 * D) / N` và khoảng tin cậy **95% (Wilson hoặc Bootstrap)** trước khi rút ra kết luận so sánh cho RQ1, RQ2, RQ3.
 
 ---
 

@@ -1,6 +1,6 @@
 # TASKS — Kế hoạch Triển khai Dự án Theo Sprint
 
-Tài liệu này phân rã toàn bộ khối lượng công việc của dự án **Game AI Đa Cấp Độ (Extended Tic-Tac-Toe `M×N, K`)** thành **5 Sprint** tuần tự, bám sát kiến trúc trong [ARCHITECTURE.md](./ARCHITECTURE.md), thiết kế giao diện trong [DESIGN.md](./DESIGN.md), các yêu cầu nghiên cứu (**RQ3, RQ4, RQ5**) trong [PRD.md](./PRD.md) và quy chuẩn kiểm soát chất lượng trong [RULES.md](./RULES.md).
+Tài liệu này phân rã toàn bộ khối lượng công việc của dự án **Game AI Đa Cấp Độ (Extended Tic-Tac-Toe `M×N, K`)** thành **5 Sprint** tuần tự, bám sát kiến trúc trong [ARCHITECTURE.md](./ARCHITECTURE.md), thiết kế giao diện trong [DESIGN.md](./DESIGN.md), các yêu cầu nghiên cứu (**RQ1, RQ2, RQ3**) trong [PRD.md](./PRD.md) và quy chuẩn kiểm soát chất lượng trong [RULES.md](./RULES.md).
 
 ---
 
@@ -52,16 +52,16 @@ Tài liệu này phân rã toàn bộ khối lượng công việc của dự á
 
 ## Sprint 4: Hệ thống Giải đấu Công bằng, Thống kê & 4 Thí nghiệm Ablation
 
-**Mục tiêu Sprint:** Tổ chức giải đấu Round-Robin cân bằng lượt đi trước/sau, tính độ đo thống kê kèm khoảng tin cậy 95%, và thu thập đủ dữ liệu thực nghiệm trả lời **RQ3, RQ4, RQ5**.
+**Mục tiêu Sprint:** Tổ chức giải đấu Round-Robin cân bằng lượt đi trước/sau, tính độ đo thống kê kèm khoảng tin cậy 95%, và thu thập đủ dữ liệu thực nghiệm trả lời **RQ1, RQ2, RQ3**.
 
 | Mã | Công việc chi tiết | Tệp / Module mục tiêu | Tiêu chí hoàn thành (DoD) |
 |---|---|---|---|
 | **T4.1** | Xây dựng `TournamentRunner` chạy **Paired Round-Robin** (chia đều 50% `X` / 50% `O` trên cùng cặp seed), tự động ghi metadata phần cứng + từng nước đi vào `logs/*.jsonl`. | `src/ttt_ai/benchmark/tournament.py`, `configs/tournament.yaml`, `scripts/run_tournament.py` | Log JSONL đầy đủ `meta` header và từng `match` record; hỗ trợ chạy tiếp hoặc tái lập theo seed. |
 | **T4.2** | Cài đặt `metrics.py`: tính `score = (W + 0.5*D)/N`, **Wilson Score 95% CI**, **Bootstrap 95% CI**, $\Delta\text{Score}_X - \text{Score}_O$, `mean_ms`, `p95_ms`, `avg_nodes/sims` + unit tests. | `src/ttt_ai/benchmark/metrics.py`, `tests/test_tournament_metrics.py` | `pytest tests/test_tournament_metrics.py` pass 100%. |
 | **T4.3** | Chạy giải đấu chính thức trên **`4×4, K=4`** (200 ván/cặp ở cả 2 chế độ: *Fixed Time Budget* `10 ms / 50 ms` và *Default Config*) + giải đấu đối chứng trên **`3×3, K=3`**. | `logs/tournament_4x4_k4_*.jsonl`, `logs/tournament_3x3_k3_*.jsonl` | Không có ván nào bị lỗi `IllegalMoveError`; đầy đủ số ván cho mọi cặp trong 7 cấp AI. |
-| **T4.4** | Cài đặt & chạy 4 kịch bản trong `ablations.py`: (1) Alpha-Beta bật/tắt cắt tỉa & move ordering; (2) **RQ3** `Policy-only` vs `Pure MCTS` vs `Hybrid MCTS (rollout & mixed)` theo `n_simulations ∈ {50, 150, 400}` & `time_budget_ms`; (3) **RQ4** $\Delta\text{Score}$ trên `3×3 K=3`, `4×4 K=3`, `4×4 K=4`; (4) **RQ5** `RL Self-play` vs `Supervised` qua 3 seed trước unseen opponents. | `src/ttt_ai/benchmark/ablations.py`, `scripts/run_ablations.py`, `logs/ablation_*.jsonl` | Có raw JSONL log riêng cho cả 4 ablation phục vụ vẽ biểu đồ tự động. |
+| **T4.4** | Cài đặt & chạy 4 kịch bản trong `ablations.py`: (1) Alpha-Beta bật/tắt cắt tỉa & move ordering; (2) **RQ1** `Policy-only` vs `Pure MCTS` vs `Hybrid MCTS (rollout & mixed)` theo `n_simulations ∈ {50, 150, 400}` & `time_budget_ms`; (3) **RQ2** $\Delta\text{Score}$ trên `3×3 K=3`, `4×4 K=3`, `4×4 K=4`; (4) **RQ3** `RL Self-play` vs `Supervised` qua 3 seed trước unseen opponents. | `src/ttt_ai/benchmark/ablations.py`, `scripts/run_ablations.py`, `logs/ablation_*.jsonl` | Có raw JSONL log riêng cho cả 4 ablation phục vụ vẽ biểu đồ tự động. |
 
-**Cổng nghiệm thu Sprint 4:** Toàn bộ raw log giải đấu & 4 ablations hoàn chỉnh, không chỉnh sửa tay, sẵn sàng tổng hợp số liệu trả lời RQ3, RQ4, RQ5.
+**Cổng nghiệm thu Sprint 4:** Toàn bộ raw log giải đấu & 4 ablations hoàn chỉnh, không chỉnh sửa tay, sẵn sàng tổng hợp số liệu trả lời RQ1, RQ2, RQ3.
 
 ---
 

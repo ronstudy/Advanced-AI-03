@@ -15,7 +15,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `4 / 4` | `DONE` | `pytest tests/test_engine.py` pass 100% (`29 passed`); `ruff` sạch |
 | **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `5 / 5` | `DONE` | `pytest tests/test_agents_contract.py tests/test_search_agents.py` pass 100% (`45 passed`; full suite `216 passed`); `ruff` sạch |
 | **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `0 / 4` | `TODO` | Đủ checkpoints + `meta.json` hợp lệ |
-| **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ3, RQ4, RQ5`) | `0 / 4` | `TODO` | Raw JSONL logs & 95% CI hoàn chỉnh |
+| **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ1, RQ2, RQ3`) | `0 / 4` | `TODO` | Raw JSONL logs & 95% CI hoàn chỉnh |
 | **Sprint 5** | Rich CLI Demo, Visualizer (`Fig 1..5`), `README.md` & Rà soát Rubric | `0 / 3` | `TODO` | Demo ổn định + tái lập 1-lệnh |
 
 ---
@@ -25,7 +25,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 ### Phase 0: Tài liệu Thiết kế & Quy chuẩn
 | Mã | Tên tài liệu | Trạng thái | Ngày hoàn thành | Đường dẫn |
 |---|---|---|---|---|
-| **P0.1** | Đặc tả yêu cầu & 3 Câu hỏi Nghiên cứu (`RQ3, RQ4, RQ5`) | `DONE` | `2026-11-14` | [PRD.md](./PRD.md) |
+| **P0.1** | Đặc tả yêu cầu & 3 Câu hỏi Nghiên cứu (`RQ1, RQ2, RQ3`) | `DONE` | `2026-11-14` | [PRD.md](./PRD.md) |
 | **P0.2** | Quy chuẩn kỹ thuật & Trung thực học thuật | `DONE` | `2026-11-14` | [RULES.md](./RULES.md) |
 | **P0.3** | Kiến trúc phân lớp, API, NN/RL/Hybrid & Schemas | `DONE` | `2026-11-14` | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | **P0.4** | Thiết kế giao diện `Rich CLI` & 5 bộ biểu đồ báo cáo | `DONE` | `2026-11-14` | [DESIGN.md](./DESIGN.md) |
@@ -51,7 +51,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | **T4.1** | `TournamentRunner` (Paired Round-Robin 50/50 `X/O`, JSONL logger) | `TODO` | — | — |
 | **T4.2** | `metrics.py` (Score, Wilson/Bootstrap 95% CI, p95) & `test_tournament_metrics.py` | `TODO` | — | — |
 | **T4.3** | Giải đấu chính `4×4 K=4` (Fixed Budget + Default) & đối chứng `3×3 K=3` | `TODO` | — | — |
-| **T4.4** | Chạy 4 kịch bản `ablations.py` (AB pruning, **RQ3**, **RQ4**, **RQ5**) | `TODO` | — | — |
+| **T4.4** | Chạy 4 kịch bản `ablations.py` (AB pruning, **RQ1**, **RQ2**, **RQ3**) | `TODO` | — | — |
 | **T5.1** | Giao diện `Rich CLI` (`theme.py`, `cli_app.py`, `scripts/play.py`) | `TODO` | — | — |
 | **T5.2** | `visualizer.py` & `plot_results.py` (`Fig 1..5`, `summary_tables.md`, `sample_failure_cases.md`) | `TODO` | — | — |
 | **T5.3** | `README.md`, đối chiếu trích dẫn `References/` & kiểm tra chéo Rubric 100đ | `TODO` | — | — |

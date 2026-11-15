@@ -20,23 +20,23 @@ Trên bàn `3×3` truyền thống, không gian trạng thái nhỏ khiến các
 1. Mô hình hóa chính xác trò chơi thành môi trường ra quyết định (`state`, `legal_actions`, `transition`, `terminal`, `reward`) với giao diện API thống nhất, được kiểm thử tự động toàn diện.
 2. Cài đặt đúng nguyên lý và giải thích được giả định của 7 cấp độ AI (`Random`, `Rule-based`, `Minimax/Alpha-Beta`, `MCTS UCT`, `Supervised Fast/Strong Policy Network`, `RL Q-learning / Self-play`, `Hybrid MCTS + Policy`).
 3. Thực nghiệm đối kháng cân bằng lượt đi trước/sau, kiểm soát công bằng ngân sách tính toán (không chỉ cố định độ sâu tìm kiếm), đo lường độ trễ (`mean`, `p95`), chi phí tính toán (`nodes/simulations`, RAM/VRAM, thời gian train) và thực hiện phân tích ablation có ý nghĩa.
-4. Trả lời bằng chứng thực nghiệm cho **3 câu hỏi nghiên cứu chính (RQ3, RQ4, RQ5)** thay vì chỉ xếp hạng bảng điểm các cấp AI.
+4. Trả lời bằng chứng thực nghiệm cho **3 câu hỏi nghiên cứu chính (RQ1, RQ2, RQ3)** thay vì chỉ xếp hạng bảng điểm các cấp AI.
 
 ### 1.3. Ba Câu hỏi Nghiên cứu Chính (Research Questions)
 
 Dự án tập trung trả lời 3 câu hỏi nghiên cứu trọng tâm đã thống nhất:
 
-1. **RQ3 — Hiệu quả của mô hình lai (Hybrid MCTS + Policy/Value Network) so với MCTS thuần và Policy-only:**
+1. **RQ1 — Hiệu quả của mô hình lai (Hybrid MCTS + Policy/Value Network) so với MCTS thuần và Policy-only:**
    > *Trên không gian bàn cờ Tic-Tac-Toe mở rộng (`4×4, K=4`), việc dẫn hướng tìm kiếm cây bằng mạng học được (Hybrid MCTS + Policy/Value Network theo hướng AlphaGo-inspired) cải thiện hiệu quả sử dụng ngân sách tìm kiếm (tỷ lệ thắng và chỉ số `score` theo từng mốc số lượng mô phỏng và độ trễ `ms/nước`) ở mức độ nào so với MCTS UCT sử dụng rollout ngẫu nhiên thuần túy và so với Policy-only không sử dụng tìm kiếm cây?*
    - **Giả thuyết kiểm chứng:** Khi kích thước bàn cờ mở rộng, rollout ngẫu nhiên của MCTS thuần mất dần tín hiệu chiến thuật ở đầu và trung cuộc; việc đưa phân phối xác suất tiên nghiệm $P(s, a)$ từ mạng Policy vào công thức chọn nhánh (PUCT/UCT dẫn hướng) giúp hội tụ vào nhánh tốt nhanh hơn với ít simulation hơn, vượt trội cả Policy-only (do có lookahead sửa sai chiến thuật) lẫn Pure MCTS cùng ngân sách mô phỏng.
    - **Thí nghiệm & Độ đo:** Ablation so sánh `Policy-only` vs. `Pure MCTS (UCT)` vs. `Hybrid MCTS + Policy` tại nhiều mức ngân sách (`n_simulations = 50, 150, 400` và cùng ngưỡng thời gian `ms/nước`).
 
-2. **RQ4 — Lợi thế người đi trước (First-player Advantage) theo cấp độ AI và luật thắng:**
+2. **RQ2 — Lợi thế người đi trước (First-player Advantage) theo cấp độ AI và luật thắng:**
    > *Mức độ chênh lệch lợi thế người đi trước ($\Delta\text{Score} = \text{Score}_X - \text{Score}_O$) biến thiên như thế nào khi nâng cấp tác tử từ Baseline (Random, Rule-based) lên Tìm kiếm đối kháng (Alpha-Beta, MCTS) và Học máy/Học sâu (NN, RL, Hybrid MCTS), đồng thời việc thay đổi điều kiện thắng từ `4×4, K=3` sang `4×4, K=4` (đối chứng thêm với `3×3, K=3`) làm dịch chuyển cân bằng thắng/hòa ra sao?*
    - **Giả thuyết kiểm chứng:** Trên `4×4, K=3`, lợi thế đi trước (`X`) bị khuếch đại cực mạnh và dễ tạo thế tấn công đôi sớm; khi tăng điều kiện thắng lên `4×4, K=4`, không gian phòng thủ rộng hơn kéo ván đấu giữa các AI mạnh về tỷ lệ hòa cao hơn và thu hẹp $\Delta\text{Score}$, phản ánh rõ hơn năng lực chiến thuật dài hạn thay vì ưu thế nước đi đầu.
    - **Thí nghiệm & Độ đo:** Tách riêng ma trận kết quả khi cầm quân `X` (đi trước) và quân `O` (đi sau), tính $\Delta\text{Score}$ kèm khoảng tin cậy Wilson/Bootstrap 95% trên `3×3 (K=3)`, `4×4 (K=3)` và `4×4 (K=4)`.
 
-3. **RQ5 — Độ ổn định & Khả năng tổng quát hóa: Reinforcement Learning (Q-learning / Self-play) so với Supervised Learning:**
+3. **RQ3 — Độ ổn định & Khả năng tổng quát hóa: Reinforcement Learning (Q-learning / Self-play) so với Supervised Learning:**
    > *Khi đối đầu với tập đối thủ đa dạng chưa từng xuất hiện trong quá trình tạo dữ liệu huấn luyện (unseen opponents như Alpha-Beta giới hạn độ sâu và MCTS UCT), tác tử học tăng cường qua tự chơi (RL: Tabular Q-learning trên `3×3` / DQN Self-play trên `4×4`) có đạt khả năng tổng quát hóa và độ ổn định qua nhiều `random seed` tốt hơn so với mô hình Supervised Learning bắt chước nước đi chuyên gia (`Fast/Strong Policy Network` — vốn có nguy cơ học lại heuristic và bị giới hạn bởi trần năng lực của teacher) hay không?*
    - **Giả thuyết kiểm chứng:** Mô hình Supervised có thể đạt tỷ lệ khớp nhãn cao trên tập test cùng phân phối dữ liệu chuyên gia, nhưng dễ sụp đổ khi gặp các trạng thái lạ (out-of-distribution) từ đối thủ chơi khác phong cách; ngược lại, RL tự chơi khám phá đa dạng trạng thái hơn nhưng đòi hỏi kiểm soát exploration và kiến trúc xấp xỉ hàm giá trị (DQN) trên `4×4` để ổn định giữa các seed.
    - **Thí nghiệm & Độ đo:** Learning curves (loss / win-rate theo epoch/episode qua ít nhất 3 `seed`), tỷ lệ thắng/hòa/thua trước tập đối thủ unseen, phân tích các ván thua điển hình (failure modes).
@@ -56,8 +56,8 @@ Dự án tập trung trả lời 3 câu hỏi nghiên cứu trọng tâm đã th
 
 ### 2.2. Các cấu hình bàn cờ hỗ trợ
 Engine được viết tổng quát cho mọi bộ tham số `(rows=M, cols=N, win_k=K)`:
-1. **`4×4, K=4` (Primary Benchmark):** Bài toán chính dùng cho đánh giá toàn bộ 7 cấp AI, giải đấu Round-Robin và trả lời RQ3, RQ4, RQ5.
-2. **`4×4, K=3` (RQ4 Sensitivity Variant):** Biến thể phục vụ riêng thực nghiệm đo độ nhạy lợi thế người đi trước theo điều kiện thắng `K`.
+1. **`4×4, K=4` (Primary Benchmark):** Bài toán chính dùng cho đánh giá toàn bộ 7 cấp AI, giải đấu Round-Robin và trả lời RQ1, RQ2, RQ3.
+2. **`4×4, K=3` (RQ2 Sensitivity Variant):** Biến thể phục vụ riêng thực nghiệm đo độ nhạy lợi thế người đi trước theo điều kiện thắng `K`.
 3. **`3×3, K=3` (Slide Sanity Baseline):** Chế độ kiểm chứng nhanh và đối chứng trực tiếp với số liệu trong `Tic tac toe Game.pdf` (Newell & Simon, `MiniMax_ab`, `MCTS`, `Fast/Strong Policy`, `Tabular Q-learning`).
 4. **`5×5, K=4` (Optional Generalization Bonus):** Thử nghiệm mở rộng tính tổng quát hóa của kiến trúc Engine/Agents để phục vụ phần điểm khuyến khích.
 
@@ -90,7 +90,7 @@ Engine được viết tổng quát cho mọi bộ tham số `(rows=M, cols=N, w
 | **4** | `MCTSAgent` | Tree Search (UCT) | 4 pha Selection (UCT với hằng số `c_uct`), Expansion, Simulation (rollout ngẫu nhiên), Backpropagation; hỗ trợ chạy theo `n_simulations` hoặc `time_budget_ms`. |
 | **5** | `PolicyNetworkAgent` / `ValueGreedyAgent` | Deep Learning (Supervised) | Gồm **`FastPolicyNet`**, **`StrongPolicyNet`** (`Conv2d 3×3, 128 filters` + các lớp `Dense(64)` + `Dense(M*N)` Softmax) và **`ValueNet`** (`Tanh` đầu ra $v \in [-1, +1]$ để đối chiếu slide 61–62). Train từ dữ liệu expert tách theo `game_id`; luôn mask xác suất ô không hợp lệ khi suy luận. |
 | **6** | `RLAgent` | Reinforcement Learning | Gồm **`TabularQLearningAgent`** (dùng canonical state cho `3×3, K=3` để đối chứng slide 56) và **`DQNAgent` Self-Play** (mạng Q xấp xỉ cho `4×4` và `M×N`, dùng replay buffer, target network, $\epsilon$-greedy decay) để tránh bùng nổ trạng thái trên bàn lớn. |
-| **7** | `HybridMCTSAgent` | AlphaGo-inspired | Kết hợp cây tìm kiếm MCTS (PUCT) với `StrongPolicyNet` cung cấp prior $P(s, a)$ và hỗ trợ 2 chế độ đánh giá lá (`rollout` thuần và `mixed` kết hợp `ValueNet` theo hệ số $\lambda$) để trả lời trực tiếp **RQ3**. |
+| **7** | `HybridMCTSAgent` | AlphaGo-inspired | Kết hợp cây tìm kiếm MCTS (PUCT) với `StrongPolicyNet` cung cấp prior $P(s, a)$ và hỗ trợ 2 chế độ đánh giá lá (`rollout` thuần và `mixed` kết hợp `ValueNet` theo hệ số $\lambda$) để trả lời trực tiếp **RQ1**. |
 
 ### 3.1. Chi tiết xử lý xung đột luật ở Cấp 2 (`RuleBasedAgent` trên `M×N, K`)
 Thứ tự ưu tiên từ cao xuống thấp (nếu thỏa mãn nhiều điều kiện cùng lúc sẽ lấy điều kiện có độ ưu tiên cao hơn; đồng hạng sẽ ưu tiên ô có trọng số chiến lược cao hơn hoặc chọn ngẫu nhiên có kiểm soát):
@@ -133,9 +133,9 @@ Tuân thủ lưu ý thuật ngữ của đề cương mục 3.2, `HybridMCTSAgen
 
 ### 4.3. Kế hoạch Ablation & Sensitivity Analysis (Bắt buộc $\ge 2$, dự kiến 4 thí nghiệm)
 1. **Ablation 1 (Tìm kiếm Alpha-Beta — Theo đề cương):** Bật vs. Tắt cắt tỉa Alpha-Beta và bật vs. tắt sắp xếp nước đi (*Move Ordering*) ở cùng độ sâu trên `4×4, K=4` (đo số nút duyệt và `ms/nước`).
-2. **Ablation 2 (Trả lời RQ3 — Policy vs. Pure MCTS vs. Hybrid MCTS):** So sánh `FastPolicyNet`, `StrongPolicyNet`, `Pure MCTS (UCT)`, và `Hybrid MCTS + Policy` tại các ngưỡng ngân sách `n_simulations ∈ {50, 150, 400}` và ngưỡng thời gian `10 ms / 50 ms`.
-3. **Ablation 3 (Trả lời RQ4 — First-player Advantage theo `K` & cấp AI):** Đối chiếu ma trận thắng `X` vs. `O` và $\Delta\text{Score}$ trên `3×3 (K=3)`, `4×4 (K=3)`, và `4×4 (K=4)`.
-4. **Ablation 4 (Trả lời RQ5 — RL Self-Play vs. Supervised Learning):** So sánh `PolicyNetwork` (Supervised) vs. `RLAgent` (Self-play) qua 3 `seed` khi đối đầu với tập đối thủ unseen (`AlphaBeta`, `MCTS`).
+2. **Ablation 2 (Trả lời RQ1 — Policy vs. Pure MCTS vs. Hybrid MCTS):** So sánh `FastPolicyNet`, `StrongPolicyNet`, `Pure MCTS (UCT)`, và `Hybrid MCTS + Policy` tại các ngưỡng ngân sách `n_simulations ∈ {50, 150, 400}` và ngưỡng thời gian `10 ms / 50 ms`.
+3. **Ablation 3 (Trả lời RQ2 — First-player Advantage theo `K` & cấp AI):** Đối chiếu ma trận thắng `X` vs. `O` và $\Delta\text{Score}$ trên `3×3 (K=3)`, `4×4 (K=3)`, và `4×4 (K=4)`.
+4. **Ablation 4 (Trả lời RQ3 — RL Self-Play vs. Supervised Learning):** So sánh `PolicyNetwork` (Supervised) vs. `RLAgent` (Self-play) qua 3 `seed` khi đối đầu với tập đối thủ unseen (`AlphaBeta`, `MCTS`).
 
 ---
 
@@ -154,7 +154,7 @@ Pipeline phân tích tự động đọc raw JSONL logs và sinh:
 - Ma trận nhiệt (*Heatmaps*) tỷ lệ thắng & `Score` tách riêng khi đi `X` và đi `O` (tương tự slide 52, 61).
 - Biểu đồ độ trễ `mean_ms` & `p95_ms` (thang log) và số nút duyệt trung bình (tương tự slide 53, 62).
 - Đường cong học tập (*Learning Curves*) của Supervised (loss/accuracy) và RL (reward/win-rate theo episode qua nhiều seed).
-- Biểu đồ phân tích Ablation cho RQ3, RQ4, RQ5.
+- Biểu đồ phân tích Ablation cho RQ1, RQ2, RQ3.
 
 ---
 
@@ -167,7 +167,7 @@ Pipeline phân tích tự động đọc raw JSONL logs và sinh:
 | 3 | Tác tử tìm kiếm (Cấp 1–4) | 20 | `Random`, `Rule-based` (có thứ tự & xử lý xung đột), `Minimax/Alpha-Beta` (so sánh bật/tắt cắt tỉa), `MCTS UCT` đúng chuẩn 4 pha. |
 | 4 | Tác tử học được (Cấp 5–7) | 15 | `Fast/Strong PolicyNet` và `RL (Tabular Q / DQN)` được huấn luyện thực sự; có dataset split theo ván, learning curves, checkpoint, và tích hợp `Hybrid MCTS`. |
 | 5 | Thiết kế đánh giá | 15 | Round-robin 100–200 ván/cặp, cân bằng lượt `X/O`, đa `seed`, đo theo ngân sách thời gian/mô phỏng công bằng, $\ge 2$ ablations có ý nghĩa. |
-| 6 | Kết quả & thảo luận | 10 | Ma trận đối đầu, khoảng tin cậy 95%, độ trễ p95/chi phí, trả lời RQ3/RQ4/RQ5 có căn cứ, phân tích lỗi & hạn chế. |
+| 6 | Kết quả & thảo luận | 10 | Ma trận đối đầu, khoảng tin cậy 95%, độ trễ p95/chi phí, trả lời RQ1/RQ2/RQ3 có căn cứ, phân tích lỗi & hạn chế. |
 | 7 | Báo cáo, slide, demo | 10 | Biểu đồ tự động từ log thật, demo CLI ổn định ở cả chế độ Người–Máy và Máy–Máy, tài liệu đầy đủ. |
 | 8 | Tái lập & đạo đức | 5 | Code PEP 8, README tái lập 1-lệnh, lưu raw log & seed, trích dẫn phần kế thừa minh bạch. |
 | + | Điểm khuyến khích (tùy chọn) | +10 | Thực nghiệm thuyết phục `Hybrid MCTS` (AlphaGo-inspired), thử nghiệm đa cấu hình bàn (`3×3`, `4×4 K=3/4`, `5×5 K=4`), giải thích nước đi trên Rich CLI. |

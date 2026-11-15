@@ -44,7 +44,7 @@ flowchart TD
 ```text
 Advanced_AI_Tic-Tac-Toe_Project/
 ├── Planning/
-│   ├── PRD.md                        # Đặc tả bài toán, 3 RQ (RQ3, RQ4, RQ5) & Rubric
+│   ├── PRD.md                        # Đặc tả bài toán, 3 RQ (RQ1, RQ2, RQ3) & Rubric
 │   ├── RULES.md                      # Quy chuẩn PEP 8, API contract & trung thực học thuật
 │   ├── ARCHITECTURE.md               # Kiến trúc hệ thống & đặc tả kỹ thuật (tài liệu này)
 │   ├── DESIGN.md                     # Thiết kế giao diện Rich CLI & hệ thống biểu đồ
@@ -58,7 +58,7 @@ Advanced_AI_Tic-Tac-Toe_Project/
 │   └── Reversi-mcts-master/          # Mã nguồn tham khảo MCTS (chỉ đọc/đối chiếu)
 ├── configs/
 │   ├── game_4x4_k4.yaml              # Chuẩn chính (Primary Benchmark)
-│   ├── game_4x4_k3.yaml              # Biến thể độ nhạy lợi thế đi trước (RQ4)
+│   ├── game_4x4_k3.yaml              # Biến thể độ nhạy lợi thế đi trước (RQ2)
 │   ├── game_3x3_k3.yaml              # Biến thể đối chứng slide
 │   ├── game_5x5_k4.yaml              # Biến thể mở rộng tổng quát hóa (Bonus)
 │   ├── train_supervised.yaml         # Cấu hình sinh dữ liệu expert & train Policy/Value Net
@@ -95,7 +95,7 @@ Advanced_AI_Tic-Tac-Toe_Project/
 │       │   ├── __init__.py
 │       │   ├── tournament.py         # Paired Round-Robin Runner (cân bằng X/O, đa seed)
 │       │   ├── metrics.py            # Score, Wilson 95% CI, Bootstrap 95% CI, p95 latency
-│       │   ├── ablations.py          # 4 kịch bản Ablation (AB pruning, RQ3, RQ4, RQ5)
+│       │   ├── ablations.py          # 4 kịch bản Ablation (AB pruning, RQ1, RQ2, RQ3)
 │       │   └── visualizer.py         # Xuất Fig 1..5 PNG (300 DPI) & summary CSV/MD
 │       └── ui/
 │           ├── __init__.py
@@ -158,7 +158,7 @@ class AgentDecision:
     prior_probs: dict[int, float] = field(default_factory=dict)
 ```
 
-- Trường `prior_probs` (tùy chọn, dùng cho Cấp 7 `HybridMCTS`) lưu xác suất tiên nghiệm $P(s, a)$ từ mạng Policy song song với phân phối lượt thăm sau tìm kiếm `action_scores`, cho phép Rich CLI và script phân tích chứng minh trực quan cách tìm kiếm cây điều chỉnh gợi ý mạng nơ-ron (**RQ3**).
+- Trường `prior_probs` (tùy chọn, dùng cho Cấp 7 `HybridMCTS`) lưu xác suất tiên nghiệm $P(s, a)$ từ mạng Policy song song với phân phối lượt thăm sau tìm kiếm `action_scores`, cho phép Rich CLI và script phân tích chứng minh trực quan cách tìm kiếm cây điều chỉnh gợi ý mạng nơ-ron (**RQ1**).
 
 ```mermaid
 sequenceDiagram
@@ -206,13 +206,13 @@ Tổng quát hóa kiến trúc từ slide 44–48 và slide 61–62 của `Tic t
 |---|---|---|---|---|
 | `FastPolicyNet` | `Conv2d(1, 128, 3, padding=1) + ReLU` | `Linear(128*M*N, 64)` $\rightarrow$ `Linear(64, 64)` | `Linear(64, M*N)` logits (`CrossEntropyLoss`) | Suy luận cực nhanh; đối chứng kích thước mạng |
 | `StrongPolicyNet` | `Conv2d(1, 128, 3, padding=1) + ReLU` | `3 × Linear(64) + ReLU` | `Linear(64, M*N)` logits (`CrossEntropyLoss`) | Policy chính & làm prior $P(s, a)$ cho Cấp 7 |
-| `ValueNet` | `Conv2d(1, 128, 3, padding=1) + ReLU` | `Linear(128*M*N, 64)` $\rightarrow$ `Linear(64, 64)` | `Linear(64, 1) + Tanh` (`MSELoss` với outcome $z \in [-1, +1]$) | Đánh giá trạng thái độc lập (slide 61–62) & hỗ trợ nhánh Value trong Cấp 7 (RQ3) |
+| `ValueNet` | `Conv2d(1, 128, 3, padding=1) + ReLU` | `Linear(128*M*N, 64)` $\rightarrow$ `Linear(64, 64)` | `Linear(64, 1) + Tanh` (`MSELoss` với outcome $z \in [-1, +1]$) | Đánh giá trạng thái độc lập (slide 61–62) & hỗ trợ nhánh Value trong Cấp 7 (RQ1) |
 
 - **Action Masking bắt buộc:** Khi `PolicyNetworkAgent` suy luận, mọi ô không nằm trong `legal_actions()` bị gán `logits = -1e9` trước khi `Softmax`. Khi `ValueGreedyAgent` (dùng `ValueNet` thuần để đối chiếu slide 61–62) chọn nước đi, agent duyệt các nước hợp lệ `clone/step` 1 bước và chọn nước có $-V(s')$ lớn nhất.
 
 ### 4.3. Cấp 6: Reinforcement Learning (`TabularQAgent` & `DQNAgent`)
 - **`TabularQAgent` (Cho `3×3, K=3` — đối chứng slide 56):** Khóa trạng thái là byte string của `canonical_board`; cập nhật Q-value cho trò chơi zero-sum theo phương trình $Q(s,a) \leftarrow (1-\alpha) Q(s,a) + \alpha \cdot [r - \gamma \max_{a' \in \text{legal}(s')} Q(s', a')]$ (đảo dấu vì lượt kế là của đối thủ).
-- **`DQNAgent` (Cho `4×4, K=4`, `4×4, K=3` & tổng quát `M×N` — phục vụ RQ5):**
+- **`DQNAgent` (Cho `4×4, K=4`, `4×4, K=3` & tổng quát `M×N` — phục vụ RQ3):**
   - Mạng `DQNNet`: `Conv2d(1, 128, 3, padding=1) + ReLU` $\rightarrow$ `2 × Linear(64) + ReLU` $\rightarrow$ `Linear(M*N)` ước lượng Q-values.
   - **Ổn định hóa Self-Play:**
     1. *Experience Replay Buffer* (dung lượng cấu hình, ví dụ `50,000` transitions) lưu tuple `(s_canon, a, r_terminal, s_next_canon, done, legal_mask_next)`.
@@ -221,11 +221,11 @@ Tổng quát hóa kiến trúc từ slide 44–48 và slide 61–62 của `Tic t
     4. *Mixed Training Opponent Pool:* Kết hợp 70% tự chơi với bản snapshot quá khứ của chính nó (cập nhật pool theo chu kỳ) + 30% đối thủ baseline (`Random`/`RuleBased`) để ngăn quên thảm họa (*catastrophic forgetting*).
 
 ### 4.4. Cấp 7: `HybridMCTSAgent` — AlphaGo-inspired (`src/ttt_ai/agents/hybrid_mcts_agent.py`)
-Kiến trúc mô phỏng cảm hứng AlphaGo phục vụ trực tiếp **RQ3**, hỗ trợ chọn chế độ đánh giá nút lá (`leaf_eval_mode`) để thực nghiệm có kiểm soát:
+Kiến trúc mô phỏng cảm hứng AlphaGo phục vụ trực tiếp **RQ1**, hỗ trợ chọn chế độ đánh giá nút lá (`leaf_eval_mode`) để thực nghiệm có kiểm soát:
 1. **Selection (PUCT):** Tại nút đã mở rộng, chọn $a$ tối đa hóa:
    $$\text{PUCT}(s, a) = Q(s, a) + c_{\text{puct}} \cdot P(s, a) \cdot \frac{\sqrt{\sum_{b} N(s, b)}}{1 + N(s, a)}$$
 2. **Expansion & Prior Caching:** Khi mở rộng nút mới $s$, gọi `StrongPolicyNet` lấy phân phối $P(s, \cdot)$ đã mask hợp lệ. Kết quả $(P(s,\cdot), V(s))$ được lưu vào **LRU Cache theo `(canonical_board.tobytes())`** để giảm triệt để độ trễ suy luận PyTorch trên các trạng thái lặp lại do hoán vị nước đi (*transpositions*).
-3. **Leaf Evaluation (2 cấu hình phục vụ RQ3):**
+3. **Leaf Evaluation (2 cấu hình phục vụ RQ1):**
    - `rollout`: Rollout ngẫu nhiên đến terminal (chuẩn `Mix_MCTS` dùng Policy prior + Rollout).
    - `mixed`: Kết hợp $\lambda \cdot V_\theta(s) + (1 - \lambda) \cdot z_{\text{rollout}}$ với $V_\theta(s)$ từ `ValueNet` (mô phỏng đầy đủ cả Policy + Value trong AlphaGo-inspired).
 4. **Backpropagation:** Lan truyền ngược kết quả lên gốc theo dấu luân phiên từng tầng.
@@ -276,9 +276,9 @@ Ngăn chặn tuyệt đối việc dùng nhầm trọng số chưa huấn luyệ
 Khi khởi tạo `PolicyNetworkAgent`, `DQNAgent` hoặc `HybridMCTSAgent`, `checkpoint_io.py` tự động kiểm tra khớp `board_config` và sự tồn tại hợp lệ của `meta.json`.
 
 ### 5.3. Thiết kế Giải đấu & Schema Raw Log (`logs/*.jsonl`)
-- **Paired Round-Robin:** Với mỗi cặp `(A, B)` và ngân sách `N = 200` ván, chạy `100` cặp seed `s_0..s_99`; mỗi cặp gồm 1 ván `(X=A, O=B)` và 1 ván `(X=B, O=A)` để loại bỏ sai số thứ tự và tạo dữ liệu sạch cho **RQ4**.
+- **Paired Round-Robin:** Với mỗi cặp `(A, B)` và ngân sách `N = 200` ván, chạy `100` cặp seed `s_0..s_99`; mỗi cặp gồm 1 ván `(X=A, O=B)` và 1 ván `(X=B, O=A)` để loại bỏ sai số thứ tự và tạo dữ liệu sạch cho **RQ2**.
 - **Hai chế độ thực nghiệm bắt buộc:**
-  1. **Fixed Budget Mode:** Cố định `time_budget_ms ∈ {10.0, 50.0}` cho các tác tử tìm kiếm; riêng nhánh Ablation RQ3 chạy thêm theo `n_simulations ∈ {50, 150, 400}`.
+  1. **Fixed Budget Mode:** Cố định `time_budget_ms ∈ {10.0, 50.0}` cho các tác tử tìm kiếm; riêng nhánh Ablation RQ1 chạy thêm theo `n_simulations ∈ {50, 150, 400}`.
   2. **Default Mode:** Thông số mặc định minh bạch từ `configs/tournament.yaml`.
 - **Schema dòng JSONL:**
   - Dòng 1 (`type="meta"`): Ghi thông tin bàn cờ, chế độ ngân sách, cấu hình tất cả agent, phiên bản phần mềm và thông số phần cứng (CPU/GPU/RAM).

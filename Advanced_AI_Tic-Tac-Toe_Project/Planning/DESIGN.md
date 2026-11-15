@@ -21,7 +21,7 @@ Tài liệu này mô tả thiết kế chi tiết cho giao diện người dùng
 Khi chạy `python scripts/play.py` (hoặc hỗ trợ cờ CLI trực tiếp để vào thẳng trận khi demo), người dùng chọn nhanh 4 nhóm tham số:
 1. **Cấu hình bàn cờ (`Board Preset`):**
    - `[1]` `4×4, K=4` *(Mặc định — Primary Benchmark)*
-   - `[2]` `4×4, K=3` *(Biến thể nhạy lợi thế đi trước — RQ4)*
+   - `[2]` `4×4, K=3` *(Biến thể nhạy lợi thế đi trước — RQ2)*
    - `[3]` `3×3, K=3` *(Đối chứng Slide)*
    - `[4]` `5×5, K=4` *(Mở rộng tổng quát hóa)*
    - `[5]` Tùy chỉnh `M × N, K`
@@ -87,7 +87,7 @@ Bố cục màn hình chia làm **Header**, **Thân 2 cột** (Trái 48% / Phả
      - *Cấp 4 (`MCTS`):* Hiển thị tỷ lệ lượt thăm `N(s,a) / N(s)` (`%`).
      - *Cấp 5 (`PolicyNet`):* Hiển thị xác suất Softmax sau khi đã mask ô bất hợp lệ (`%`).
      - *Cấp 6 (`TabularQ / DQN`):* Hiển thị Q-values trực tiếp (hoặc softmax Q-values trên heatmap kèm giá trị Q thô ở bảng Top-5).
-     - *Cấp 7 (`HybridMCTS`):* Hiển thị song song **Prior `P(s,a)` từ mạng Policy** và **Visit Share `N(s,a)/N(s)` sau tìm kiếm PUCT** trong bảng Top-5 — giúp minh họa trực quan cách cây tìm kiếm "sửa sai" hoặc "củng cố" gợi ý ban đầu của mạng nơ-ron (**trả lời trực quan cho RQ3**).
+     - *Cấp 7 (`HybridMCTS`):* Hiển thị song song **Prior `P(s,a)` từ mạng Policy** và **Visit Share `N(s,a)/N(s)` sau tìm kiếm PUCT** trong bảng Top-5 — giúp minh họa trực quan cách cây tìm kiếm "sửa sai" hoặc "củng cố" gợi ý ban đầu của mạng nơ-ron (**trả lời trực quan cho RQ1**).
 
 ### 2.3. Xử lý lỗi nhập liệu & Lệnh tương tác
 - Chấp nhận cả hai định dạng nhập thuận tiện: chỉ số ô (ví dụ `5`) hoặc tọa độ hàng-cột (`1,1` hoặc `1 1`).
@@ -102,11 +102,11 @@ Toàn bộ biểu đồ được xuất tự động từ file log thô (`logs/*
 
 | Mã Hình | Tên Biểu đồ | Loại Biểu đồ & Bố cục | Phục vụ Mục / Câu hỏi |
 |---|---|---|---|
-| **Fig 1** | **Ma trận Đối đầu Kép (`X` vs `O`)** | 2 Heatmaps đặt cạnh nhau: Trái = Tỷ lệ thắng & `Score` khi cầm `X`; Phải = khi cầm `O`. Mỗi ô ghi rõ `Score` (hoặc `Win%`) và `(W-D-L)`. | Bảng tổng hợp Round-Robin & **RQ4** |
+| **Fig 1** | **Ma trận Đối đầu Kép (`X` vs `O`)** | 2 Heatmaps đặt cạnh nhau: Trái = Tỷ lệ thắng & `Score` khi cầm `X`; Phải = khi cầm `O`. Mỗi ô ghi rõ `Score` (hoặc `Win%`) và `(W-D-L)`. | Bảng tổng hợp Round-Robin & **RQ2** |
 | **Fig 2** | **Độ trễ Suy luận & Số Nút duyệt** | Biểu đồ cột **thang log** cho `mean_ms` kèm đánh dấu `p95_ms`, và biểu đồ phụ `avg_nodes / avg_simulations` cho 7 cấp AI. | Đánh giá chi phí tính toán (Rubric mục 3.5) |
-| **Fig 3** | **Ablation: Policy vs Pure MCTS vs Hybrid MCTS** | Line plot (`Score` kèm vùng tô bóng 95% Bootstrap CI) theo trục `n_simulations ∈ {50, 150, 400}` và theo `time_budget_ms`. Kèm subplot bật/tắt cắt tỉa Alpha-Beta. | Trả lời **RQ3** & Ablation bắt buộc |
-| **Fig 4** | **Ablation: Lợi thế Người đi trước ($\Delta\text{Score}$)** | Grouped bar chart kèm error bars 95% CI cho $\Delta\text{Score} = \text{Score}_X - \text{Score}_O$ trên 3 bộ luật: `3×3 K=3`, `4×4 K=3`, và `4×4 K=4`. | Trả lời **RQ4** |
-| **Fig 5** | **Learning Curves & Tổng quát hóa Unseen Opponents** | (a) Đường cong học tập (`mean ± std` qua 3 seed) theo epoch/episode; (b) Grouped bar chart so sánh `Supervised Policy` vs `RL Self-play` khi gặp đối thủ unseen (`AlphaBeta`, `MCTS`). | Trả lời **RQ5** |
+| **Fig 3** | **Ablation: Policy vs Pure MCTS vs Hybrid MCTS** | Line plot (`Score` kèm vùng tô bóng 95% Bootstrap CI) theo trục `n_simulations ∈ {50, 150, 400}` và theo `time_budget_ms`. Kèm subplot bật/tắt cắt tỉa Alpha-Beta. | Trả lời **RQ1** & Ablation bắt buộc |
+| **Fig 4** | **Ablation: Lợi thế Người đi trước ($\Delta\text{Score}$)** | Grouped bar chart kèm error bars 95% CI cho $\Delta\text{Score} = \text{Score}_X - \text{Score}_O$ trên 3 bộ luật: `3×3 K=3`, `4×4 K=3`, và `4×4 K=4`. | Trả lời **RQ2** |
+| **Fig 5** | **Learning Curves & Tổng quát hóa Unseen Opponents** | (a) Đường cong học tập (`mean ± std` qua 3 seed) theo epoch/episode; (b) Grouped bar chart so sánh `Supervised Policy` vs `RL Self-play` khi gặp đối thủ unseen (`AlphaBeta`, `MCTS`). | Trả lời **RQ3** |
 
 ---
 
