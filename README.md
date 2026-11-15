@@ -82,8 +82,11 @@ Advanced-AI-03/
 │       ├── Queen.png                                     # Trực quan hóa nghiệm n-Queens
 │       ├── Algorithm Convergence.png                     # Biểu đồ tốc độ hội tụ qua các bước lặp
 │       └── Runtime Scalability.png                       # Đồ thị độ phức tạp thời gian theo kích thước bài toán
+├── LaTeX/                                                # Báo cáo học thuật định dạng LaTeX & tài nguyên ảnh
+│   ├── main.tex                                          # Mã nguồn LaTeX bài báo cáo đồ án / nghiên cứu
+│   └── SGU-LOGO.png                                      # Logo trường Đại học Sài Gòn
 ├── Midterm/                                              # Thư mục lưu trữ tài liệu / đề cương ôn tập giữa kỳ
-└── Advanced_AI_Tic-Tac-Toe_Project/                      # Đồ án Cuối kỳ: Game AI Đa Cấp Độ (M×N, K)
+└── Extended_Tic-Tac-Toe_Project/                         # Đồ án Cuối kỳ: Game AI Đa Cấp Độ (M×N, K)
     ├── pyproject.toml                                    # Cấu hình cài đặt package ttt-ai, pytest & ruff
     ├── Planning/                                         # Bộ 6 tài liệu thiết kế, quy chuẩn & quản lý dự án
     │   ├── PRD.md                                        # Yêu cầu sản phẩm, mô hình MDP, 3 câu hỏi nghiên cứu RQ
@@ -181,14 +184,14 @@ Dự án phát triển hệ thống tác tử đối kháng 7 cấp độ cho tr
 
 | Cấp độ | Tác tử AI | Thuật toán / Nguyên lý hoạt động | Module triển khai chính | Trạng thái kiểm thử / Thực nghiệm |
 |:---:|---|---|---|:---:|
-| **L0** | **Core Engine & Rules** | Động cơ trò chơi chuẩn PEP 8; Kiểm tra thắng gia tăng $O(K)$; Biểu diễn Canonical Board (góc nhìn người chơi hiện tại); Bất biến hóa hành động; Tính đối xứng 8 phép biến đổi D4. | [`src/ttt_ai/engine/`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/engine/) | **Đã hoàn thành (Sprint 1)**<br>Passing 80/80 unit tests (`test_engine.py`, `test_rules.py`). |
-| **L1** | **RandomAgent** | Lựa chọn hành động ngẫu nhiên đồng đều trong không gian nước đi hợp lệ (`legal_actions`). Tác tử đối chứng baseline. | [`src/ttt_ai/agents/random_agent.py`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/agents/random_agent.py) | **Đã hoàn thành (Sprint 2)**<br>Hoàn thành hợp đồng Agent API; Tốc độ ra quyết định $\approx 0.02$ ms/nước. |
-| **L2** | **RuleBasedAgent** | Hệ thống luật tri thức chuyên gia dựa trên Newell & Simon tổng quát hóa 6 tầng ưu tiên: (1) Thắng ngay, (2) Chặn thua ngay, (3) Tạo nước đôi (Fork), (4) Chặn nước đôi, (5) Chiếm trung tâm, (6) Nước đi tiềm năng tối ưu. | [`src/ttt_ai/agents/rule_based_agent.py`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/agents/rule_based_agent.py) | **Đã hoàn thành (Sprint 2)**<br>Bất bại vét cạn 100% trên $3 \times 3, K=3$; Thắng áp đảo RandomAgent với Score $0.935$ trên $4 \times 4, K=4$ ($0.06$ ms/nước). |
-| **L3** | **MinimaxAgent / AlphaBetaAgent** | Tìm kiếm đối kháng cạn kèm **Alpha-Beta Pruning**; Heuristic đánh giá cửa sổ trượt $K$ ô; Sắp xếp nước đi (**Move Ordering**) theo trọng số ô; Lặp sâu dần (**Iterative Deepening**) kiểm soát ngân sách thời gian thực. | [`src/ttt_ai/agents/minimax_agent.py`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/agents/minimax_agent.py) | **Đã hoàn thành (Sprint 2)**<br>Alpha-Beta + Move Ordering **cắt giảm 95.9% số nút duyệt** trên bàn $4 \times 4$ (từ $47,297$ xuống $1,941$ nút). |
-| **L4** | **MCTSAgent (UCT)** | Monte Carlo Tree Search 4 pha chuẩn mực: **Selection** (công thức UCB1), **Expansion**, **Simulation** (Rollout ngẫu nhiên có trọng số), **Backpropagation**; Hỗ trợ nhiễu Dirichlet tại nút gốc để khám phá. | [`src/ttt_ai/agents/mcts_agent.py`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/agents/mcts_agent.py) | **Đã hoàn thành (Sprint 2)**<br>Đạt điểm số $1.000$ (40-0-0) trước RandomAgent ($N=200$ sims); Hòa tuyệt đối $0.500$ (0 thua) trước RuleBased và AlphaBeta. |
-| **L5** | **PolicyNetworkAgent / ValueGreedyAgent** | Mạng nơ-ron tích chập (CNN) và MLP học có giám sát: `FastPolicyNet`, `StrongPolicyNet` và `ValueNet` có Action Masking; Dự đoán phân phối xác suất nước đi và giá trị trạng thái. | [`src/ttt_ai/agents/nn_models.py`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/agents/nn_models.py)<br>[`src/ttt_ai/agents/policy_agent.py`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/agents/policy_agent.py) | **Khung đã thiết kế (Sprint 3)**<br>Chuẩn bị tập dữ liệu game-level split 70/15/15 và script huấn luyện có giám sát. |
-| **L6** | **TabularQAgent / DQNAgent** | Học tăng cường thông qua cơ chế tự chơi (Self-Play): Q-Learning dạng bảng cho $3 \times 3, K=3$; Deep Q-Network (DQN) với Replay Buffer, Target Network và $\epsilon$-greedy schedule cho $4 \times 4$. | [`src/ttt_ai/agents/rl_agent.py`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/agents/rl_agent.py) | **Khung đã thiết kế (Sprint 3)**<br>Sẵn sàng quy trình train đa seed (3 seeds) với opponent pool hỗn hợp. |
-| **L7** | **HybridMCTSAgent** | Mô hình kết hợp lấy cảm hứng từ kiến trúc AlphaGo: MCTS sử dụng biến thể **PUCT**, ưu tiên duyệt nhánh được định hướng bởi `StrongPolicyNet`, kết hợp giá trị lá từ `ValueNet` và Rollouts. | [`src/ttt_ai/agents/hybrid_mcts_agent.py`](Advanced_AI_Tic-Tac-Toe_Project/src/ttt_ai/agents/hybrid_mcts_agent.py) | **Khung đã thiết kế (Sprint 3)**<br>Đặc tả đầy đủ tại `ARCHITECTURE.md` (giải quyết câu hỏi nghiên cứu trọng tâm **RQ3**). |
+| **L0** | **Core Engine & Rules** | Động cơ trò chơi chuẩn PEP 8; Kiểm tra thắng gia tăng $O(K)$; Biểu diễn Canonical Board (góc nhìn người chơi hiện tại); Bất biến hóa hành động; Tính đối xứng 8 phép biến đổi D4. | [`src/ttt_ai/engine/`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/engine/) | **Đã hoàn thành (Sprint 1)**<br>Passing 80/80 unit tests (`test_engine.py`, `test_rules.py`). |
+| **L1** | **RandomAgent** | Lựa chọn hành động ngẫu nhiên đồng đều trong không gian nước đi hợp lệ (`legal_actions`). Tác tử đối chứng baseline. | [`src/ttt_ai/agents/random_agent.py`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/agents/random_agent.py) | **Đã hoàn thành (Sprint 2)**<br>Hoàn thành hợp đồng Agent API; Tốc độ ra quyết định $\approx 0.02$ ms/nước. |
+| **L2** | **RuleBasedAgent** | Hệ thống luật tri thức chuyên gia dựa trên Newell & Simon tổng quát hóa 6 tầng ưu tiên: (1) Thắng ngay, (2) Chặn thua ngay, (3) Tạo nước đôi (Fork), (4) Chặn nước đôi, (5) Chiếm trung tâm, (6) Nước đi tiềm năng tối ưu. | [`src/ttt_ai/agents/rule_based_agent.py`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/agents/rule_based_agent.py) | **Đã hoàn thành (Sprint 2)**<br>Bất bại vét cạn 100% trên $3 \times 3, K=3$; Thắng áp đảo RandomAgent với Score $0.935$ trên $4 \times 4, K=4$ ($0.06$ ms/nước). |
+| **L3** | **MinimaxAgent / AlphaBetaAgent** | Tìm kiếm đối kháng cạn kèm **Alpha-Beta Pruning**; Heuristic đánh giá cửa sổ trượt $K$ ô; Sắp xếp nước đi (**Move Ordering**) theo trọng số ô; Lặp sâu dần (**Iterative Deepening**) kiểm soát ngân sách thời gian thực. | [`src/ttt_ai/agents/minimax_agent.py`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/agents/minimax_agent.py) | **Đã hoàn thành (Sprint 2)**<br>Alpha-Beta + Move Ordering **cắt giảm 95.9% số nút duyệt** trên bàn $4 \times 4$ (từ $47,297$ xuống $1,941$ nút). |
+| **L4** | **MCTSAgent (UCT)** | Monte Carlo Tree Search 4 pha chuẩn mực: **Selection** (công thức UCB1), **Expansion**, **Simulation** (Rollout ngẫu nhiên có trọng số), **Backpropagation**; Hỗ trợ nhiễu Dirichlet tại nút gốc để khám phá. | [`src/ttt_ai/agents/mcts_agent.py`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/agents/mcts_agent.py) | **Đã hoàn thành (Sprint 2)**<br>Đạt điểm số $1.000$ (40-0-0) trước RandomAgent ($N=200$ sims); Hòa tuyệt đối $0.500$ (0 thua) trước RuleBased và AlphaBeta. |
+| **L5** | **PolicyNetworkAgent / ValueGreedyAgent** | Mạng nơ-ron tích chập (CNN) và MLP học có giám sát: `FastPolicyNet`, `StrongPolicyNet` và `ValueNet` có Action Masking; Dự đoán phân phối xác suất nước đi và giá trị trạng thái. | [`src/ttt_ai/agents/nn_models.py`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/agents/nn_models.py)<br>[`src/ttt_ai/agents/policy_agent.py`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/agents/policy_agent.py) | **Khung đã thiết kế (Sprint 3)**<br>Chuẩn bị tập dữ liệu game-level split 70/15/15 và script huấn luyện có giám sát. |
+| **L6** | **TabularQAgent / DQNAgent** | Học tăng cường thông qua cơ chế tự chơi (Self-Play): Q-Learning dạng bảng cho $3 \times 3, K=3$; Deep Q-Network (DQN) với Replay Buffer, Target Network và $\epsilon$-greedy schedule cho $4 \times 4$. | [`src/ttt_ai/agents/rl_agent.py`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/agents/rl_agent.py) | **Khung đã thiết kế (Sprint 3)**<br>Sẵn sàng quy trình train đa seed (3 seeds) với opponent pool hỗn hợp. |
+| **L7** | **HybridMCTSAgent** | Mô hình kết hợp lấy cảm hứng từ kiến trúc AlphaGo: MCTS sử dụng biến thể **PUCT**, ưu tiên duyệt nhánh được định hướng bởi `StrongPolicyNet`, kết hợp giá trị lá từ `ValueNet` và Rollouts. | [`src/ttt_ai/agents/hybrid_mcts_agent.py`](Extended_Tic-Tac-Toe_Project/src/ttt_ai/agents/hybrid_mcts_agent.py) | **Khung đã thiết kế (Sprint 3)**<br>Đặc tả đầy đủ tại `ARCHITECTURE.md` (giải quyết câu hỏi nghiên cứu trọng tâm **RQ3**). |
 
 ---
 
@@ -229,7 +232,7 @@ pip install numpy scipy matplotlib pandas numba tabulate jupyter
 #### Bước 4: Cài đặt package Đồ án Game AI (`ttt-ai`)
 Cài đặt package đồ án ở chế độ phát triển (editable mode) kèm các gói công cụ dev (`pytest`, `ruff`):
 ```bash
-cd Advanced_AI_Tic-Tac-Toe_Project
+cd Extended_Tic-Tac-Toe_Project
 pip install -e .[dev]
 cd ..
 ```
@@ -259,31 +262,31 @@ Dự án xây dựng bộ kiểm thử tự động toàn diện với **216 tes
 
 ```bash
 # Chạy toàn bộ 216 unit tests trong repository
-pytest Advanced_AI_Tic-Tac-Toe_Project -v
+pytest Extended_Tic-Tac-Toe_Project -v
 
 # Chạy riêng bộ kiểm thử Động cơ Game Engine & Luật kiểm tra thắng O(K)
-pytest Advanced_AI_Tic-Tac-Toe_Project/tests/test_engine.py Advanced_AI_Tic-Tac-Toe_Project/tests/test_rules.py -v
+pytest Extended_Tic-Tac-Toe_Project/tests/test_engine.py Extended_Tic-Tac-Toe_Project/tests/test_rules.py -v
 
 # Chạy kiểm thử các tác tử tìm kiếm Minimax, Alpha-Beta và MCTS
-pytest Advanced_AI_Tic-Tac-Toe_Project/tests/test_search_agents.py -v
+pytest Extended_Tic-Tac-Toe_Project/tests/test_search_agents.py -v
 
 # Chạy kiểm thử tuân thủ hợp đồng giao tiếp tác tử (Agent Contract)
-pytest Advanced_AI_Tic-Tac-Toe_Project/tests/test_agents_contract.py -v
+pytest Extended_Tic-Tac-Toe_Project/tests/test_agents_contract.py -v
 ```
 
 ### 3. Chạy linter kiểm tra chuẩn mã nguồn
 
 Dự án áp dụng quy chuẩn PEP 8 và linter **Ruff** nghiêm ngặt:
 ```bash
-ruff check Advanced_AI_Tic-Tac-Toe_Project/src Advanced_AI_Tic-Tac-Toe_Project/tests
+ruff check Extended_Tic-Tac-Toe_Project/src Extended_Tic-Tac-Toe_Project/tests
 ```
 
 ### 4. Khởi chạy Game AI & Scripts Đồ án
 
-Khi di chuyển vào thư mục `Advanced_AI_Tic-Tac-Toe_Project/`, các kịch bản thực nghiệm và giao diện CLI được vận hành như sau:
+Khi di chuyển vào thư mục `Extended_Tic-Tac-Toe_Project/`, các kịch bản thực nghiệm và giao diện CLI được vận hành như sau:
 
 ```bash
-cd Advanced_AI_Tic-Tac-Toe_Project
+cd Extended_Tic-Tac-Toe_Project
 
 # 1. Trực tiếp chơi đối kháng với AI trên Terminal giao diện Rich CLI (Human vs AI hoặc AI vs AI)
 python scripts/play.py --config configs/game_4x4_k4.yaml --agent alphabeta --depth 4
@@ -324,7 +327,7 @@ Dự án đã hoàn thành vượt mức tiến độ Sprint 1 và Sprint 2, đ�
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.x, pytest-9.2.0, pluggy-1.5.0
-rootdir: C:\Users\Ron\Documents\GitHub\Advanced-AI-03\Advanced_AI_Tic-Tac-Toe_Project
+rootdir: C:\Users\Ron\Documents\GitHub\Advanced-AI-03\Extended_Tic-Tac-Toe_Project
 configfile: pyproject.toml
 testpaths: tests
 collected 216 items
@@ -360,17 +363,17 @@ tests/test_search_agents.py .......................                      [100%]
 ## 📚 Nguồn Tham khảo & Kế thừa (References & Inheritance)
 
 ### 1. Tài liệu môn học & Đề tài (GVHD: Đỗ Như Tài)
-- [`TTNTNC_De_tai_cuoi_ky_Game_AI.pdf`](Advanced_AI_Tic-Tac-Toe_Project/References/TTNTNC_De_tai_cuoi_ky_Game_AI.pdf) — Đề cương chi tiết và yêu cầu kỹ thuật đồ án cuối kỳ môn Trí Tuệ Nhân Tạo Nâng Cao.
-- [`Tic tac toe Game.pdf`](Advanced_AI_Tic-Tac-Toe_Project/References/Tic%20tac%20toe%20Game.pdf) — Slide hướng dẫn nguyên lý trò chơi Tic-Tac-Toe mở rộng và phương pháp tìm kiếm trong không gian trạng thái.
+- [`TTNTNC_De_tai_cuoi_ky_Game_AI.pdf`](Extended_Tic-Tac-Toe_Project/References/TTNTNC_De_tai_cuoi_ky_Game_AI.pdf) — Đề cương chi tiết và yêu cầu kỹ thuật đồ án cuối kỳ môn Trí Tuệ Nhân Tạo Nâng Cao.
+- [`Tic tac toe Game.pdf`](Extended_Tic-Tac-Toe_Project/References/Tic%20tac%20toe%20Game.pdf) — Slide hướng dẫn nguyên lý trò chơi Tic-Tac-Toe mở rộng và phương pháp tìm kiếm trong không gian trạng thái.
 
 ### 2. Giáo trình & Tài liệu kinh điển
 - **Stuart Russell & Peter Norvig**, *Artificial Intelligence: A Modern Approach (4th Edition)*, Pearson, 2020. (Nền tảng về Không gian trạng thái, Heuristic Search, CSP, Minimax và Games).
 - **Richard S. Sutton & Andrew G. Barto**, *Reinforcement Learning: An Introduction (2nd Edition)*, The MIT Press, 2018. (Nền tảng về MDP, Bellman Equations, Q-Learning và Deep RL).
-- **Mark Liu**, *AlphaGo Simplified: Rule-Based AI and Deep Learning in Everyday Games*, 2024. Tài liệu và mã nguồn đối chiếu tại [`AlphaGoSimplified-main/`](Advanced_AI_Tic-Tac-Toe_Project/References/AlphaGoSimplified-main/).
+- **Mark Liu**, *AlphaGo Simplified: Rule-Based AI and Deep Learning in Everyday Games*, 2024. Tài liệu và mã nguồn đối chiếu tại [`AlphaGoSimplified-main/`](Extended_Tic-Tac-Toe_Project/References/AlphaGoSimplified-main/).
 
 ### 3. Mã nguồn tham khảo & Khung thực hành
 - [`maze_helper.py`](Lab/lab03_localsearch_search_TruongChiLong_3123410198/maze_helper.py) và khung bài tập thực hành Lab 03 / Lab 04 của **Michael Hahsler** (Khoa Khoa học Máy tính, SMU). Toàn bộ phần thuật toán tìm kiếm, tối ưu hóa Numba, đối sánh thực nghiệm và báo cáo chuyên sâu do sinh viên thực hiện độc lập.
-- [`Reversi-mcts-master/`](Advanced_AI_Tic-Tac-Toe_Project/References/Reversi-mcts-master/) — Dự án mã nguồn C#/.NET tham khảo phương pháp áp dụng MCTS và Backtracking Minimax trong trò chơi đối kháng bàn cờ.
+- [`Reversi-mcts-master/`](Extended_Tic-Tac-Toe_Project/References/Reversi-mcts-master/) — Dự án mã nguồn C#/.NET tham khảo phương pháp áp dụng MCTS và Backtracking Minimax trong trò chơi đối kháng bàn cờ.
 
 ---
 
