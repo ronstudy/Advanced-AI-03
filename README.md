@@ -48,7 +48,7 @@
     - [1. Thực nghiệm Tìm kiếm cục bộ (Lab 03)](#1-thực-nghiệm-tìm-kiếm-cục-bộ-lab-03)
     - [2. Thực nghiệm Bài toán thỏa mãn ràng buộc (Lab 04)](#2-thực-nghiệm-bài-toán-thỏa-mãn-ràng-buộc-lab-04)
     - [3. Kiểm thử & Sanity Benchmark Đồ án Game AI (Sprint 1 & Sprint 2)](#3-kiểm-thử--sanity-benchmark-đồ-án-game-ai-sprint-1--sprint-2)
-  - [📚 Nguồn Tham khảo & Kế thừa](#-nguồn-tham-khảo--kế-thừa)
+  - [📚 Nguồn Tham khảo & Kế thừa (References & Inheritance)](#-nguồn-tham-khảo--kế-thừa-references--inheritance)
   - [👤 Tác giả & Giấy phép (Author & License)](#-tác-giả--giấy-phép-author--license)
 
 ---
@@ -357,7 +357,7 @@ tests/test_search_agents.py .......................                      [100%]
 
 ---
 
-## 📚 Nguồn Tham khảo & Kế thừa
+## 📚 Nguồn Tham khảo & Kế thừa (References & Inheritance)
 
 ### 1. Tài liệu môn học & Đề tài (GVHD: Đỗ Như Tài)
 - [`TTNTNC_De_tai_cuoi_ky_Game_AI.pdf`](Advanced_AI_Tic-Tac-Toe_Project/References/TTNTNC_De_tai_cuoi_ky_Game_AI.pdf) — Đề cương chi tiết và yêu cầu kỹ thuật đồ án cuối kỳ môn Trí Tuệ Nhân Tạo Nâng Cao.
