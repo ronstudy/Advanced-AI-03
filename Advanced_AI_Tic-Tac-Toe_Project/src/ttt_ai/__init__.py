@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-from ttt_ai.agents import AgentDecision, BaseAgent, SearchTimeoutError
+from ttt_ai.agents import (
+    AgentDecision,
+    BaseAgent,
+    RandomAgent,
+    RuleBasedAgent,
+    RuleTier,
+    SearchTimeoutError,
+)
 from ttt_ai.config import BoardConfig, GameConfig, load_game_config, seed_everything
 from ttt_ai.engine.game import ExtendedTicTacToe
 
@@ -12,6 +19,9 @@ __all__ = [
     "__version__",
     "AgentDecision",
     "BaseAgent",
+    "RandomAgent",
+    "RuleBasedAgent",
+    "RuleTier",
     "SearchTimeoutError",
     "BoardConfig",
     "GameConfig",

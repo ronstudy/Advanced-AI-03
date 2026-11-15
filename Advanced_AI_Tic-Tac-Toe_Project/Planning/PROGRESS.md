@@ -3,7 +3,7 @@
 Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa Cấp Độ (Extended Tic-Tac-Toe `M×N, K`)**. Mọi trạng thái `DONE` đều phải đi kèm bằng chứng kiểm chứng (`pytest` output, đường dẫn checkpoint, hoặc raw log) theo đúng quy định trong [RULES.md](./RULES.md) và kế hoạch tại [TASKS.md](./TASKS.md).
 
 - **Cập nhật lần cuối:** `2026-11-15`
-- **Giai đoạn hiện tại:** Đang thực hiện **Sprint 2 (`1 / 5`)** — Hoàn thành **T2.1**, sẵn sàng chuyển sang **T2.2**
+- **Giai đoạn hiện tại:** Đang thực hiện **Sprint 2 (`2 / 5`)** — Hoàn thành **T2.1, T2.2**, sẵn sàng chuyển sang **T2.3**
 
 ---
 
@@ -13,7 +13,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 |---|---|---|---|---|
 | **Phase 0** | Bộ 6 tài liệu Planning (`PRD`, `RULES`, `ARCHITECTURE`, `DESIGN`, `TASKS`, `PROGRESS`) | `6 / 6` | `DONE` | Đã duyệt & lưu đủ trong `Planning/` |
 | **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `4 / 4` | `DONE` | `pytest tests/test_engine.py` pass 100% (`29 passed`); `ruff` sạch |
-| **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `1 / 5` | `IN_PROGRESS` | Contract & Search tests pass 100% |
+| **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `2 / 5` | `IN_PROGRESS` | Contract & Search tests pass 100% |
 | **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `0 / 4` | `TODO` | Đủ checkpoints + `meta.json` hợp lệ |
 | **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ3, RQ4, RQ5`) | `0 / 4` | `TODO` | Raw JSONL logs & 95% CI hoàn chỉnh |
 | **Sprint 5** | Rich CLI Demo, Visualizer (`Fig 1..5`), `README.md` & Rà soát Rubric | `0 / 3` | `TODO` | Demo ổn định + tái lập 1-lệnh |
@@ -40,7 +40,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | **T1.3** | `ExtendedTicTacToe` (7+1 API chuẩn) trong `engine/game.py` | `DONE` | `2026-11-14` | `pytest -v`: `65 passed` (14 tests trong `test_engine.py`); `ruff check src/ tests/`: `All checks passed!` |
 | **T1.4** | Bộ kiểm thử `tests/test_engine.py` (`3×3`, `4×4 K=3/4`, `5×5`) | `DONE` | `2026-11-14` | `pytest tests/test_engine.py -v`: `29 passed`; `pytest -v`: `80 passed`; `ruff check src/ tests/`: `All checks passed!` |
 | **T2.1** | `agents/base.py` (`BaseAgent`, `AgentDecision`, `SearchTimeoutError`) | `DONE` | `2026-11-15` | `pytest tests/test_base_agent.py -v`: `27 passed`; `pytest -v`: `107 passed`; `ruff check src/ tests/`: `All checks passed!` |
-| **T2.2** | Cấp 1 (`RandomAgent`) & Cấp 2 (`RuleBasedAgent` 6 tầng luật) | `TODO` | — | — |
+| **T2.2** | Cấp 1 (`RandomAgent`) & Cấp 2 (`RuleBasedAgent` 6 tầng luật) | `DONE` | `2026-11-15` | `pytest tests/test_level1_level2_agents.py -v`: `16 passed`; `pytest -v`: `123 passed`; `ruff check src/ tests/`: `All checks passed!`; bất bại vét cạn 100% trên `3×3 K=3` (`X` & `O`); đối kháng `4×4 K=4` (`N=100`) đạt `score=0.935` (`87-13-0`, `0.0627 ms/move`) trước `RandomAgent` |
 | **T2.3** | Cấp 3 (`MinimaxAgent` / `AlphaBetaAgent`, heuristic, Iterative Deepening) | `TODO` | — | — |
 | **T2.4** | Cấp 4 (`MCTSAgent` UCT 4 pha) | `TODO` | — | — |
 | **T2.5** | `tests/test_agents_contract.py` & `tests/test_search_agents.py` | `TODO` | — | — |
@@ -64,7 +64,9 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 
 | Run ID | Ngày | Loại chạy (`Train` / `Tournament` / `Ablation`) | Cấu hình & Seed | Kết quả tóm tắt (Loss / Acc / Score) | Đường dẫn Checkpoint / Raw Log |
 |---|---|---|---|---|---|
-| *(Chưa có)* | — | — | — | — | — |
+| `T2.2-SANITY-01` | `2026-11-15` | `Benchmark (Paired)` | `3×3 K=3`, `RuleBased` (`seed=42..91`) vs `Random` (`seed=1000..1049`), `N=100` (50 cặp `X/O`) | `W-D-L = 91-9-0`, `score = 0.955`; Rule `mean = 0.0508 ms` (`p95 = 0.0621 ms`, `avg_nodes = 18.79`); Random `mean = 0.0228 ms` (`p95 = 0.0281 ms`) | Inline sanity run (chưa xuất `.jsonl`; log chính thức ở Sprint 4) |
+| `T2.2-SANITY-02` | `2026-11-15` | `Benchmark (Paired)` | `4×4 K=4`, `RuleBased` (`seed=42..91`) vs `Random` (`seed=1000..1049`), `N=100` (50 cặp `X/O`) | `W-D-L = 87-13-0`, `score = 0.935`; Rule `mean = 0.0627 ms` (`p95 = 0.0847 ms`, `avg_nodes = 32.30`); Random `mean = 0.0255 ms` (`p95 = 0.0309 ms`) | Inline sanity run (chưa xuất `.jsonl`; log chính thức ở Sprint 4) |
+| `T2.2-SANITY-03` | `2026-11-15` | `Benchmark (Paired)` | `4×4 K=3`, `RuleBased` (`seed=42..91`) vs `Random` (`seed=1000..1049`), `N=100` (50 cặp `X/O`) | `W-D-L = 99-0-1`, `score = 0.990`; Rule `mean = 0.0862 ms` (`p95 = 0.1094 ms`, `avg_nodes = 42.27`); Random `mean = 0.0260 ms` (`p95 = 0.0302 ms`) | Inline sanity run (chưa xuất `.jsonl`; log chính thức ở Sprint 4) |
 
 ---
 
@@ -78,9 +80,9 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 
 ## 5. Hành động Tiếp theo (`Next Actions`)
 
-1. Khởi động **Sprint 2 (`T2.1` – `T2.5`)**:
-   - **T2.1:** Xây dựng `src/ttt_ai/agents/base.py` (`BaseAgent`, `AgentDecision`, `SearchTimeoutError`).
-   - **T2.2:** Cài đặt Cấp 1 (`RandomAgent`) & Cấp 2 (`RuleBasedAgent` với 6 tầng luật ưu tiên).
+1. Tiếp tục **Sprint 2 (`T2.3` – `T2.5`)**:
+   - **T2.1:** `src/ttt_ai/agents/base.py` (`BaseAgent`, `AgentDecision`, `SearchTimeoutError`) — *Đã hoàn tất (`DONE`)*.
+   - **T2.2:** Cấp 1 (`RandomAgent`) & Cấp 2 (`RuleBasedAgent` với 6 tầng luật ưu tiên) — *Đã hoàn tất (`DONE`)*.
    - **T2.3:** Cài đặt Cấp 3 (`MinimaxAgent` / `AlphaBetaAgent`, heuristic `evaluate_board`, Iterative Deepening).
    - **T2.4:** Cài đặt Cấp 4 (`MCTSAgent` UCT 4 pha).
    - **T2.5:** Viết bộ kiểm thử hợp đồng & tìm kiếm (`tests/test_agents_contract.py`, `tests/test_search_agents.py`).
