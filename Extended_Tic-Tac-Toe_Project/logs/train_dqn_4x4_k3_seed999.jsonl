@@ -1,0 +1,12 @@
+{"type": "meta", "algorithm": "DQNNet", "board_config": {"rows": 4, "cols": 4, "win_k": 3}, "seed": 999, "episodes": 20000}
+{"type": "eval", "episode": 2000, "epsilon": 0.8733966666666666, "mean_loss": 0.039778987833860475, "eval_score_vs_random": 1.0, "eval_score_vs_rule": 0.5, "aux_count": 16712, "elapsed_sec": 26.023946200002683}
+{"type": "eval", "episode": 4000, "epsilon": 0.74673, "mean_loss": 0.03584482012414079, "eval_score_vs_random": 0.975, "eval_score_vs_rule": 0.5, "aux_count": 31234, "elapsed_sec": 53.93259029999899}
+{"type": "eval", "episode": 6000, "epsilon": 0.6200633333333334, "mean_loss": 0.03385100794983581, "eval_score_vs_random": 0.975, "eval_score_vs_rule": 0.5, "aux_count": 44240, "elapsed_sec": 81.47221700000227}
+{"type": "eval", "episode": 8000, "epsilon": 0.4933966666666667, "mean_loss": 0.030008600839955796, "eval_score_vs_random": 0.975, "eval_score_vs_rule": 0.5, "aux_count": 50000, "elapsed_sec": 109.27486780000618}
+{"type": "eval", "episode": 10000, "epsilon": 0.3667300000000001, "mean_loss": 0.02664406497181409, "eval_score_vs_random": 0.95, "eval_score_vs_rule": 0.5, "aux_count": 50000, "elapsed_sec": 136.66433850000612}
+{"type": "eval", "episode": 12000, "epsilon": 0.2400633333333333, "mean_loss": 0.022213822355950475, "eval_score_vs_random": 0.975, "eval_score_vs_rule": 0.5, "aux_count": 50000, "elapsed_sec": 162.38658810000925}
+{"type": "eval", "episode": 14000, "epsilon": 0.1133966666666667, "mean_loss": 0.016547346142452266, "eval_score_vs_random": 0.975, "eval_score_vs_rule": 0.5, "aux_count": 50000, "elapsed_sec": 177.54481320000195}
+{"type": "eval", "episode": 16000, "epsilon": 0.050000000000000044, "mean_loss": 0.01171439833419081, "eval_score_vs_random": 0.95, "eval_score_vs_rule": 0.5, "aux_count": 50000, "elapsed_sec": 195.07767130000866}
+{"type": "eval", "episode": 18000, "epsilon": 0.050000000000000044, "mean_loss": 0.007832077748829415, "eval_score_vs_random": 1.0, "eval_score_vs_rule": 0.5, "aux_count": 50000, "elapsed_sec": 215.56494740000926}
+{"type": "eval", "episode": 20000, "epsilon": 0.050000000000000044, "mean_loss": 0.0055988198280409905, "eval_score_vs_random": 0.95, "eval_score_vs_rule": 0.5, "aux_count": 50000, "elapsed_sec": 249.7536087000044}
+{"type": "summary", "best_score_vs_random": 1.0, "best_score_vs_rule": 0.5, "total_env_steps": 120073, "optimizer_steps": 14946, "training_time_sec": 249.75361529999645}

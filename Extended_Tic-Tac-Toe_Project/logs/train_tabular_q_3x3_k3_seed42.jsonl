@@ -1,0 +1,14 @@
+{"type": "meta", "algorithm": "TabularQAgent", "board_config": {"rows": 3, "cols": 3, "win_k": 3}, "seed": 42, "episodes": 60000}
+{"type": "eval", "episode": 5000, "epsilon": 0.8944655555555555, "mean_loss": 0.12679002137458664, "eval_score_vs_random": 0.7, "eval_score_vs_rule": 0.5, "aux_count": 4360, "elapsed_sec": 1.817680799998925}
+{"type": "eval", "episode": 10000, "epsilon": 0.78891, "mean_loss": 0.12535319270962741, "eval_score_vs_random": 0.8, "eval_score_vs_rule": 0.5, "aux_count": 4512, "elapsed_sec": 4.3586945999995805}
+{"type": "eval", "episode": 15000, "epsilon": 0.6833544444444444, "mean_loss": 0.11926953441900973, "eval_score_vs_random": 0.925, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 6.9658328000077745}
+{"type": "eval", "episode": 20000, "epsilon": 0.577798888888889, "mean_loss": 0.11092513797051096, "eval_score_vs_random": 0.9166666666666666, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 9.40208430000348}
+{"type": "eval", "episode": 25000, "epsilon": 0.47224333333333335, "mean_loss": 0.09474422077047392, "eval_score_vs_random": 0.9, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 12.100913400005084}
+{"type": "eval", "episode": 30000, "epsilon": 0.3666877777777777, "mean_loss": 0.07865743646337024, "eval_score_vs_random": 0.9083333333333333, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 14.802718999999342}
+{"type": "eval", "episode": 35000, "epsilon": 0.2611322222222223, "mean_loss": 0.06232491945485872, "eval_score_vs_random": 0.925, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 17.630732100005844}
+{"type": "eval", "episode": 40000, "epsilon": 0.1555766666666667, "mean_loss": 0.04398093072094803, "eval_score_vs_random": 0.9083333333333333, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 20.588513599999715}
+{"type": "eval", "episode": 45000, "epsilon": 0.05002111111111118, "mean_loss": 0.025674625066723473, "eval_score_vs_random": 0.9083333333333333, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 23.852570000002743}
+{"type": "eval", "episode": 50000, "epsilon": 0.050000000000000044, "mean_loss": 0.017200381949347535, "eval_score_vs_random": 0.9083333333333333, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 26.846447100004298}
+{"type": "eval", "episode": 55000, "epsilon": 0.050000000000000044, "mean_loss": 0.0149374956511217, "eval_score_vs_random": 0.9083333333333333, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 30.14775560000271}
+{"type": "eval", "episode": 60000, "epsilon": 0.050000000000000044, "mean_loss": 0.014900860997754513, "eval_score_vs_random": 0.9083333333333333, "eval_score_vs_rule": 0.5, "aux_count": 4520, "elapsed_sec": 33.46898299999884}
+{"type": "summary", "num_states": 4520, "best_score_vs_random": 0.925, "best_score_vs_rule": 0.5, "training_time_sec": 33.46899239999766}

@@ -1,0 +1,42 @@
+{
+  "agent_class": "TabularQAgent",
+  "architecture": "TabularQ(states=4520, board=3x3_k3)",
+  "best_val_accuracy": null,
+  "best_val_loss": null,
+  "board_config": {
+    "cols": 3,
+    "rows": 3,
+    "win_k": 3
+  },
+  "dataset_hash": null,
+  "episodes_trained": 60000,
+  "epochs_trained": 0,
+  "extra": {
+    "alpha": 0.15,
+    "alpha_min": 0.03,
+    "gamma": 0.95,
+    "self_play_ratio": 0.7
+  },
+  "final_eval_score": 0.95,
+  "hardware": {
+    "cpu_count": 20,
+    "device": "cpu",
+    "numpy": "2.5.4",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "python": "3.14.7",
+    "torch": "2.15.0+cpu"
+  },
+  "model_config": {},
+  "reward_summary": {
+    "best_score_vs_random": 0.95,
+    "best_score_vs_rule": 0.5,
+    "num_states": 4520
+  },
+  "seed": 999,
+  "split_policy": null,
+  "trained_at": "2026-11-16T12:49:15.319185+00:00",
+  "training_time_sec": 33.05481630000577,
+  "training_type": "rl_tabular",
+  "weights_sha256": "9d1afaf7e76f9d5d1002db8af6fa618b70beac6f10bd5b1db02901287475a5d5"
+}

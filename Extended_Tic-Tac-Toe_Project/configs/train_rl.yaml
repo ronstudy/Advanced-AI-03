@@ -1,0 +1,77 @@
+seeds: [42, 123, 999]
+
+tabular_q:
+  boards:
+    3x3_k3:
+      rows: 3
+      cols: 3
+      win_k: 3
+      episodes: 60000
+      alpha: 0.15
+      alpha_min: 0.03
+      gamma: 0.95
+      epsilon_start: 1.0
+      epsilon_end: 0.05
+      epsilon_decay_episodes: 45000
+      self_play_ratio: 0.70
+      eval_every_episodes: 5000
+      eval_games: 60
+      checkpoint_dir: checkpoints
+      log_dir: logs
+
+dqn:
+  boards:
+    4x4_k4:
+      rows: 4
+      cols: 4
+      win_k: 4
+      episodes: 20000
+      replay_capacity: 50000
+      batch_size: 64
+      min_replay_size: 512
+      train_every_steps: 4
+      target_update_steps: 500
+      learning_rate: 0.0005
+      weight_decay: 0.00001
+      gamma: 0.95
+      epsilon_start: 1.0
+      epsilon_end: 0.05
+      epsilon_decay_episodes: 15000
+      self_play_ratio: 0.70
+      opponent_pool_size: 5
+      snapshot_every_episodes: 1000
+      eval_every_episodes: 2000
+      eval_games: 40
+      double_dqn: true
+      conv_channels: 128
+      hidden_dim: 64
+      device: cpu
+      checkpoint_dir: checkpoints
+      log_dir: logs
+    4x4_k3:
+      rows: 4
+      cols: 4
+      win_k: 3
+      episodes: 20000
+      replay_capacity: 50000
+      batch_size: 64
+      min_replay_size: 512
+      train_every_steps: 8
+      target_update_steps: 500
+      learning_rate: 0.0005
+      weight_decay: 0.00001
+      gamma: 0.95
+      epsilon_start: 1.0
+      epsilon_end: 0.05
+      epsilon_decay_episodes: 15000
+      self_play_ratio: 0.70
+      opponent_pool_size: 5
+      snapshot_every_episodes: 1000
+      eval_every_episodes: 2000
+      eval_games: 40
+      double_dqn: true
+      conv_channels: 128
+      hidden_dim: 64
+      device: cpu
+      checkpoint_dir: checkpoints
+      log_dir: logs

@@ -1,0 +1,49 @@
+{
+  "agent_class": "DQNNet",
+  "architecture": "DQNNet(conv=128, hidden=64, board=4x4_k3)",
+  "best_val_accuracy": null,
+  "best_val_loss": null,
+  "board_config": {
+    "cols": 4,
+    "rows": 4,
+    "win_k": 3
+  },
+  "dataset_hash": null,
+  "episodes_trained": 20000,
+  "epochs_trained": 0,
+  "extra": {
+    "batch_size": 64,
+    "double_dqn": true,
+    "gamma": 0.95,
+    "learning_rate": 0.0005,
+    "replay_capacity": 50000,
+    "self_play_ratio": 0.7
+  },
+  "final_eval_score": 1.0,
+  "hardware": {
+    "cpu_count": 20,
+    "device": "cpu",
+    "numpy": "2.5.4",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "python": "3.14.7",
+    "torch": "2.15.0+cpu"
+  },
+  "model_config": {
+    "conv_channels": 128,
+    "hidden_dim": 64,
+    "num_parameters": 137616
+  },
+  "reward_summary": {
+    "best_score_vs_random": 1.0,
+    "best_score_vs_rule": 0.5,
+    "optimizer_steps": 14954,
+    "total_env_steps": 120136
+  },
+  "seed": 42,
+  "split_policy": null,
+  "trained_at": "2026-11-16T14:58:09.728973+00:00",
+  "training_time_sec": 394.19214349999675,
+  "training_type": "rl_dqn",
+  "weights_sha256": "dda1abf05b4c9fd764fc8249a59ea4eace7995daa9b16f8715abd09dfbbb33b1"
+}
