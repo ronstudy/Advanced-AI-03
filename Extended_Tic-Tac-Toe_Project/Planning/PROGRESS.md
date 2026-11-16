@@ -3,7 +3,7 @@
 Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa Cấp Độ (Extended Tic-Tac-Toe `M×N, K`)**. Mọi trạng thái `DONE` đều phải đi kèm bằng chứng kiểm chứng (`pytest` output, đường dẫn checkpoint, hoặc raw log) theo đúng quy định trong [RULES.md](./RULES.md) và kế hoạch tại [TASKS.md](./TASKS.md).
 
 - **Cập nhật lần cuối:** `2026-11-16`
-- **Giai đoạn hiện tại:** Đã đóng & nghiệm thu **Sprint 2 (`5 / 5`)**; đang triển khai **Sprint 3 (`1 / 4`)** — Hoàn tất **T3.1**, chuẩn bị bước vào **T3.2**
+- **Giai đoạn hiện tại:** Đã đóng & nghiệm thu **Sprint 2 (`5 / 5`)**; đang triển khai **Sprint 3 (`2 / 4`)** — Hoàn tất **T3.1** & **T3.2** (đủ dataset & checkpoints Cấp 5 cho `3×3 K=3` và `4×4 K=4`), chuẩn bị bước vào **T3.3**
 
 ---
 
@@ -14,7 +14,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | **Phase 0** | Bộ 6 tài liệu Planning (`PRD`, `RULES`, `ARCHITECTURE`, `DESIGN`, `TASKS`, `PROGRESS`) | `6 / 6` | `DONE` | Đã duyệt & lưu đủ trong `Planning/` |
 | **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `4 / 4` | `DONE` | `pytest tests/test_engine.py` pass 100% (`29 passed`); `ruff` sạch |
 | **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `5 / 5` | `DONE` | Nghiệm thu & đóng Sprint 2 (`45 passed` contract/search; full suite `216 passed`); `ruff` sạch |
-| **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `1 / 4` | `IN_PROGRESS` | Đủ checkpoints + `meta.json` hợp lệ (`T3.1` hoàn tất nền tảng NN & Checkpoint I/O) |
+| **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `2 / 4` | `IN_PROGRESS` | Đủ checkpoints + `meta.json` hợp lệ (`T3.1` nền tảng NN & IO, `T3.2` hoàn tất Cấp 5 Supervised `3×3` & `4×4`) |
 | **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ1, RQ2, RQ3`) | `0 / 4` | `TODO` | Raw JSONL logs & 95% CI hoàn chỉnh |
 | **Sprint 5** | Rich CLI Demo, Visualizer (`Fig 1..5`), `README.md` & Rà soát Rubric | `0 / 3` | `TODO` | Demo ổn định + tái lập 1-lệnh |
 
@@ -45,7 +45,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | **T2.4** | Cấp 4 (`MCTSAgent` UCT 4 pha) | `DONE` | `2026-11-15` | Hoàn thiện `MCTSAgent` UCT 4 pha (`tests/test_mcts_agent.py`: 34 passed; full suite 171 passed; `ruff` clean); benchmark đối đầu cân bằng `4×4 K=4` đạt `1.000` vs `RandomAgent` và `0.500` (`0-40-0`, 0 thua) vs `RuleBased`/`AlphaBeta(d=4)` |
 | **T2.5** | `tests/test_agents_contract.py` & `tests/test_search_agents.py` | `DONE` | `2026-11-15` | `pytest tests/test_agents_contract.py tests/test_search_agents.py -v`: `45 passed`; `pytest -v`: `216 passed in 7.09s`; `ruff check src/ tests/`: `All checks passed!`; AB+Order cắt >85% nút trên `4×4 K=4 d=4`; Round-Robin 4 cấp (120 ván): Cấp 2/3/4 bất bại (`0` thua) |
 | **T3.1** | `nn_models.py` (`Fast/StrongPolicyNet`, `ValueNet`, `DQNNet`) & `checkpoint_io.py` | `DONE` | `2026-11-16` | `pytest tests/test_nn_and_checkpoint_io.py -v`: `17 passed`; `pytest -v`: `233 passed in 13.61s`; `ruff check src/ tests/`: `All checks passed!`; hỗ trợ `(B, 1, M, N)` đa cấu hình, Action Masking dùng chung, xác minh SHA-256 + `board_config` + chặn trọng số chưa train (`CheckpointVerificationError`) |
-| **T3.2** | `dataset_gen.py` (game-level split) & `train_supervised.py` + `policy_agent.py` | `TODO` | — | — |
+| **T3.2** | `dataset_gen.py` (game-level split) & `train_supervised.py` + `policy_agent.py` | `DONE` | `2026-11-16` | `pytest tests/test_supervised_and_policy_agents.py -v`: `11 passed`; `pytest -v`: `244 passed`; `ruff check src/ tests/ scripts/`: `All checks passed!`; sinh dataset chia theo `game_id` (`2,000` ván `3×3` & `5,000` ván `4×4`) và train thực tế `FastPolicyNet`, `StrongPolicyNet`, `ValueNet` kèm `.meta.json` & `.jsonl` |
 | **T3.3** | `rl_agent.py` (`TabularQAgent` & `DQNAgent`) + train đa seed (3 seeds) | `TODO` | — | — |
 | **T3.4** | Cấp 7 `HybridMCTSAgent` (PUCT + prior cache + `rollout`/`mixed` leaf eval) | `TODO` | — | — |
 | **T4.1** | `TournamentRunner` (Paired Round-Robin 50/50 `X/O`, JSONL logger) | `TODO` | — | — |
@@ -77,6 +77,10 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | `T2.4-SANITY-05` | `2026-11-15` | `Benchmark (Paired)` | `3×3 K=3`, `MCTS(n=200)` vs `RandomAgent`, `N=40` (20 cặp `X/O`) | `W-D-L = 39-1-0`, `score = 0.988`; `mean = 21.317 ms`, `p95 = 40.098 ms`, `avg_sims = 200.0`, `avg_nodes = 127.9` | Inline sanity run (chưa xuất `.jsonl`; log chính thức ở Sprint 4) |
 | `T2.5-SPRINT2-RR` | `2026-11-15` | `Tournament (Paired RR)` | `4×4 K=4`, 4 cấp (`L1 Random`, `L2 RuleBased`, `L3 AB d=4/50ms`, `L4 MCTS 200/50ms`), 10 cặp/cặp đấu (`N=60` ván/tác tử, `120` ván tổng) | `L1`: `0-9-51` (`0.075`, `0.028 ms`, `p95=0.037`); `L2`: `18-42-0` (`0.650`, `0.065 ms`, `p95=0.093`); `L3`: `15-45-0` (`0.625`, `10.706 ms`, `p95=26.465`); `L4`: `18-42-0` (`0.650`, `15.857 ms`, `p95=29.021`); mọi cặp đấu giữa `L2/L3/L4` đều `0-20-0` (`0.500`) | Inline Sprint 2 gate benchmark (log `.jsonl` chính thức ở Sprint 4) |
 | `T3.1-NN-BENCH-01` | `2026-11-16` | `Inference Latency Check` | `4×4 K=4` (`seed=42`, CPU `torch 2.15.0+cpu`, 200 lần đo/mạng sau warmup; chỉ đo forward + masking, chưa huấn luyện) | `FastPolicyNet` (`137,616` params): `mean = 0.2302 ms`, `p95 = 0.5060 ms`; `StrongPolicyNet` (`141,776` params): `mean = 0.2100 ms`, `p95 = 0.3185 ms`; `ValueNet` (`136,641` params): `mean = 0.0760 ms`, `p95 = 0.0995 ms`; `DQNNet` (`137,616` params): `mean = 0.1049 ms`, `p95 = 0.2330 ms` | Inline forward-pass latency sanity run (không phải đánh giá gameplay) |
+| `T3.2-TRAIN-3X3` | `2026-11-16` | `Train (Supervised)` | `3×3 K=3`, `2,000` ván (`14,195` raw → `2,068` dedup; `1017/540/511`), `epochs=40`, `seed=42` | `FastPolicyNet` (`best_ep=40`): `val_loss=0.4120`, `test_acc=90.80%`; `StrongPolicyNet` (`best_ep=40`): `val_loss=0.4290`, `test_acc=91.00%`; `ValueNet` (`best_ep=37`): `val_loss=0.3306`, `test_loss=0.2463` | `logs/datasets/supervised_3x3_k3.npz`, `checkpoints/{fastpolicynet,strongpolicynet,valuenet}_3x3_k3.pt` + `.meta.json`, `logs/train_*_3x3_k3.jsonl` |
+| `T3.2-TRAIN-4X4` | `2026-11-16` | `Train (Supervised)` | `4×4 K=4`, `5,000` ván (`73,240` raw → `28,040` dedup; `17185/5447/5408`), `epochs=40`, `seed=42` | `FastPolicyNet` (`best_ep=35`): `val_loss=0.6008`, `test_acc=80.18%`; `StrongPolicyNet` (`best_ep=38`): `val_loss=0.6079`, `test_acc=80.20%`; `ValueNet` (`best_ep=11`): `val_loss=0.0534`, `test_loss=0.0544` | `logs/datasets/supervised_4x4_k4.npz`, `checkpoints/{fastpolicynet,strongpolicynet,valuenet}_4x4_k4.pt` + `.meta.json`, `logs/train_*_4x4_k4.jsonl` |
+| `T3.2-BENCH-3X3` | `2026-11-16` | `Benchmark (Paired)` | `3×3 K=3`, Cấp 5 (`FastPolicy`, `StrongPolicy`, `ValueGreedy`) vs `Random` & `RuleBased`, `N=100` (50 cặp `X/O`) | vs `Random`: `Fast 0.930` (`90-6-4`, `0.233 ms`), `Strong 0.930` (`89-8-3`, `0.240 ms`), `Value 0.915` (`88-7-5`, `0.397 ms`); vs `RuleBased`: cả 3 đạt `0-100-0` (`0.500`, `0` thua, `0.25–0.35 ms`) | Inline sanity run dùng checkpoints `*_3x3_k3.pt` (log `.jsonl` chính thức ở Sprint 4) |
+| `T3.2-BENCH-4X4` | `2026-11-16` | `Benchmark (Paired)` | `4×4 K=4`, Cấp 5 (`FastPolicy`, `StrongPolicy`, `ValueGreedy`) vs `Random` & `RuleBased`, `N=100` (50 cặp `X/O`) | vs `Random`: `Fast 0.825` (`68-29-3`, `0.565 ms`), `Strong 0.780` (`64-28-8`, `0.891 ms`), `Value 0.875` (`79-17-4`, `1.133 ms`); vs `RuleBased`: `Fast 0.470` (`0-94-6`, `0.908 ms`), `Strong 0.470` (`0-94-6`, `0.867 ms`), `Value 0.065` (`0-13-87`, `1.103 ms`) | Inline sanity run dùng checkpoints `*_4x4_k4.pt` (log `.jsonl` chính thức ở Sprint 4) |
 
 ---
 
@@ -90,8 +94,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 
 ## 5. Hành động Tiếp theo (`Next Actions`)
 
-1. Tiếp tục **Sprint 3 (`T3.2` – `T3.4`) — Tác tử Học sâu, Học tăng cường & Mô hình Lai (Cấp 5–7)**:
-   - **T3.2:** Xây dựng `dataset_gen.py` (sinh dữ liệu expert, loại trùng, chia `70/15/15` theo `game_id`), `train_supervised.py` (huấn luyện `FastPolicyNet`, `StrongPolicyNet`, `ValueNet`) và `policy_agent.py` (Cấp 5: `PolicyNetworkAgent`, `ValueGreedyAgent`).
-   - **T3.3:** Xây dựng & huấn luyện đa seed `TabularQAgent` (`3×3 K=3`) và `DQNAgent` Self-Play (`4×4 K=4`, `4×4 K=3`) trong `rl_agent.py` (Cấp 6).
+1. Tiếp tục **Sprint 3 (`T3.3` – `T3.4`) — Tác tử Học tăng cường & Mô hình Lai (Cấp 6–7)**:
+   - **T3.3:** Xây dựng & huấn luyện đa seed `TabularQAgent` (`3×3 K=3`) và `DQNAgent` Self-Play + Mixed Opponent Pool (`4×4 K=4`, `4×4 K=3`) trong `rl_agent.py`, `train_q_tabular.py`, `train_dqn_selfplay.py`, `scripts/train_all.py` (Cấp 6).
    - **T3.4:** Cài đặt `HybridMCTSAgent` (PUCT + prior cache + chế độ `rollout` / `mixed`) (Cấp 7).
 2. Vượt qua cổng nghiệm thu Sprint 3 (đủ checkpoints thực tế kèm metadata + `test_agents_contract.py` pass 100% cho đủ 7 cấp độ) trước khi sang Sprint 4.

@@ -1,0 +1,42 @@
+seed: 42
+
+dataset:
+  split_ratios: [0.70, 0.15, 0.15]
+  split_policy: game_id_70_15_15
+  deduplicate_within_split: true
+  teacher_mode: alphabeta
+  mix_rule_based_opponent: true
+  boards:
+    4x4_k4:
+      rows: 4
+      cols: 4
+      win_k: 4
+      num_games: 5000
+      opening_random_moves: 2
+      explore_prob: 0.08
+      teacher_max_depth: 4
+      output_path: logs/datasets/supervised_4x4_k4.npz
+    3x3_k3:
+      rows: 3
+      cols: 3
+      win_k: 3
+      num_games: 2000
+      opening_random_moves: 2
+      explore_prob: 0.10
+      teacher_max_depth: 9
+      output_path: logs/datasets/supervised_3x3_k3.npz
+
+training:
+  epochs: 40
+  batch_size: 128
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  conv_channels: 128
+  hidden_dim: 64
+  device: cpu
+  models:
+    - FastPolicyNet
+    - StrongPolicyNet
+    - ValueNet
+  checkpoint_dir: checkpoints
+  log_dir: logs

@@ -27,6 +27,7 @@ from ttt_ai.agents.nn_models import (
     masked_argmax,
     masked_softmax,
 )
+from ttt_ai.agents.policy_agent import PolicyNetworkAgent, ValueGreedyAgent
 from ttt_ai.agents.random_agent import RandomAgent
 from ttt_ai.agents.rule_based_agent import RuleBasedAgent, RuleTier
 
@@ -42,11 +43,13 @@ __all__: list[str] = [
     "FastPolicyNet",
     "MCTSAgent",
     "MinimaxAgent",
+    "PolicyNetworkAgent",
     "RandomAgent",
     "RuleBasedAgent",
     "RuleTier",
     "SearchTimeoutError",
     "StrongPolicyNet",
+    "ValueGreedyAgent",
     "ValueNet",
     "action_masking",
     "apply_action_mask",

@@ -1,0 +1,46 @@
+{
+  "agent_class": "StrongPolicyNet",
+  "architecture": "StrongPolicyNet(conv=128, hidden=64, board=3x3_k3)",
+  "best_val_accuracy": 0.9018518518518519,
+  "best_val_loss": 0.4290337878244895,
+  "board_config": {
+    "cols": 3,
+    "rows": 3,
+    "win_k": 3
+  },
+  "dataset_hash": "sha256:fa49a1064bf211f185611c64a2ee829b385849a4b7a7894339c285558f049a5a",
+  "episodes_trained": 0,
+  "epochs_trained": 40,
+  "extra": {
+    "batch_size": 128,
+    "best_epoch": 40,
+    "deduplicated_samples": 2068,
+    "duplicate_ratio": 0.8543148996125396,
+    "learning_rate": 0.001,
+    "raw_samples": 14195,
+    "test_accuracy": 0.9099804305283757,
+    "test_loss": 0.4415394371619663
+  },
+  "final_eval_score": null,
+  "hardware": {
+    "cpu_count": 20,
+    "device": "cpu",
+    "numpy": "2.5.4",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "python": "3.14.7",
+    "torch": "2.15.0+cpu"
+  },
+  "model_config": {
+    "conv_channels": 128,
+    "hidden_dim": 64,
+    "num_parameters": 83977
+  },
+  "reward_summary": {},
+  "seed": 42,
+  "split_policy": "game_id_70_15_15",
+  "trained_at": "2026-11-16T06:22:36.928475+00:00",
+  "training_time_sec": 4.354717599999276,
+  "training_type": "supervised",
+  "weights_sha256": "18bff413af9078ea5dd9b1498ae531ff428352714c78027a199e6a864ee6799f"
+}
