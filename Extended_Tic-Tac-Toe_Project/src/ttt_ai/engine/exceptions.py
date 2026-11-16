@@ -11,5 +11,9 @@ class InvalidConfigError(TicTacToeError):
     """Raised when board parameters, seeds, or YAML configurations are invalid."""
 
 
+class CheckpointVerificationError(InvalidConfigError):
+    """Raised when checkpoint metadata, board config, hash, or training status is invalid."""
+
+
 class IllegalMoveError(TicTacToeError):
     """Raised when an action violates game rules or state transition invariants."""
