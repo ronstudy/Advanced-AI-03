@@ -8,6 +8,7 @@ from ttt_ai.agents.base import (
     SearchTimeoutError,
     uniform_action_scores,
 )
+from ttt_ai.agents.hybrid_mcts_agent import HybridMCTSAgent
 from ttt_ai.agents.mcts_agent import MCTSAgent
 from ttt_ai.agents.minimax_agent import AlphaBetaAgent, MinimaxAgent, evaluate_board
 from ttt_ai.agents.nn_models import (
@@ -43,6 +44,7 @@ __all__: list[str] = [
     "DQNAgent",
     "DQNNet",
     "FastPolicyNet",
+    "HybridMCTSAgent",
     "MCTSAgent",
     "MinimaxAgent",
     "PolicyNetworkAgent",

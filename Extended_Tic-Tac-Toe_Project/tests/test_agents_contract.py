@@ -1,4 +1,4 @@
-"""Unified API and behavioral contract tests for Level 1-4 AI agents (Task T2.5)."""
+"""Unified API and behavioral contract tests for Level 1-7 AI agents (T2.5 & T3.4)."""
 
 from __future__ import annotations
 
@@ -14,14 +14,21 @@ from ttt_ai import (
     AgentDecision,
     AlphaBetaAgent,
     BaseAgent,
+    DQNAgent,
     ExtendedTicTacToe,
+    HybridMCTSAgent,
     MCTSAgent,
     MinimaxAgent,
+    PolicyNetworkAgent,
     RandomAgent,
     RuleBasedAgent,
+    TabularQAgent,
+    ValueGreedyAgent,
 )
 from ttt_ai.engine.exceptions import IllegalMoveError
 from ttt_ai.engine.rules import Player
+
+CHECKPOINTS_DIR = Path(__file__).resolve().parent.parent / "checkpoints"
 
 
 def _make_board(
@@ -287,3 +294,161 @@ class TestAgentContractsLevel1To4:
                 game.step(decision.action)
 
             assert game.result(int(Player.X)) in (-1.0, 0.0, 1.0)
+
+
+def _make_all_7_level_agents(
+    board_tag: str,
+    *,
+    seed: int = 42,
+    search_depth: int = 3,
+    n_simulations: int = 40,
+) -> list[BaseAgent]:
+    """Instantiate verified agents covering every tier from Level 1 through Level 7."""
+    rl_agent: BaseAgent
+    if board_tag == "3x3_k3":
+        rl_agent = TabularQAgent(
+            CHECKPOINTS_DIR / "tabular_q_3x3_k3_seed42.pkl",
+            seed=seed,
+        )
+    else:
+        rl_agent = DQNAgent(
+            CHECKPOINTS_DIR / "dqnnet_4x4_k4_seed42.pt",
+            seed=seed,
+        )
+
+    policy_fast = PolicyNetworkAgent(
+        CHECKPOINTS_DIR / f"fastpolicynet_{board_tag}.pt",
+        seed=seed,
+    )
+    policy_strong = PolicyNetworkAgent(
+        CHECKPOINTS_DIR / f"strongpolicynet_{board_tag}.pt",
+        seed=seed,
+    )
+    value_greedy = ValueGreedyAgent(
+        CHECKPOINTS_DIR / f"valuenet_{board_tag}.pt",
+        seed=seed,
+    )
+    hybrid_rollout = HybridMCTSAgent(
+        policy_checkpoint_path=CHECKPOINTS_DIR / f"strongpolicynet_{board_tag}.pt",
+        n_simulations=n_simulations,
+        leaf_eval_mode="rollout",
+        seed=seed,
+        name="HybridMCTS_Rollout",
+    )
+    hybrid_mixed = HybridMCTSAgent(
+        policy_checkpoint_path=CHECKPOINTS_DIR / f"strongpolicynet_{board_tag}.pt",
+        value_checkpoint_path=CHECKPOINTS_DIR / f"valuenet_{board_tag}.pt",
+        n_simulations=n_simulations,
+        leaf_eval_mode="mixed",
+        value_weight=0.5,
+        seed=seed,
+        name="HybridMCTS_Mixed",
+    )
+    return [
+        RandomAgent(seed=seed),
+        RuleBasedAgent(seed=seed),
+        AlphaBetaAgent(max_depth=search_depth, seed=seed),
+        MCTSAgent(n_simulations=n_simulations, seed=seed),
+        policy_fast,
+        policy_strong,
+        value_greedy,
+        rl_agent,
+        hybrid_rollout,
+        hybrid_mixed,
+    ]
+
+
+class TestAgentContractsAll7Levels:
+    """Sprint 3 gate tests verifying all 7 AI levels obey unified contracts."""
+
+    @pytest.mark.parametrize(
+        ("board_tag", "rows", "cols", "win_k", "moves"),
+        [
+            ("3x3_k3", 3, 3, 3, []),
+            ("3x3_k3", 3, 3, 3, [4, 0, 8]),
+            ("4x4_k4", 4, 4, 4, []),
+            ("4x4_k4", 4, 4, 4, [5, 0, 10]),
+            ("4x4_k4", 4, 4, 4, [0, 1, 2, 3, 5, 4, 7, 6, 9, 8, 11, 10, 12, 13, 14]),
+        ],
+    )
+    def test_all_7_levels_preserve_state_and_emit_valid_telemetry(
+        self,
+        board_tag: str,
+        rows: int,
+        cols: int,
+        win_k: int,
+        moves: list[int],
+    ) -> None:
+        game = _make_board(rows, cols, win_k, moves)
+        legal = game.legal_actions()
+        legal_set = set(legal)
+        before_board = game.board.copy()
+        before_history = game.move_history
+        before_player = game.current_player
+
+        agents = _make_all_7_level_agents(board_tag, seed=42, search_depth=2, n_simulations=30)
+        levels_present = {agent.level for agent in agents}
+        assert levels_present == {1, 2, 3, 4, 5, 6, 7}
+
+        for agent in agents:
+            cfg = agent.get_config()
+            assert isinstance(json.dumps(cfg), str)
+            decision = agent.select_action(game)
+            assert decision.action in legal_set
+            assert np.array_equal(game.board, before_board)
+            assert game.move_history == before_history
+            assert game.current_player == before_player
+            assert math.isfinite(decision.latency_ms) and decision.latency_ms >= 0.0
+            assert decision.value_estimate is not None
+            assert math.isfinite(decision.value_estimate)
+            assert set(decision.action_scores.keys()) == legal_set
+            assert isinstance(json.dumps(decision.to_dict()), str)
+
+            if isinstance(agent, HybridMCTSAgent):
+                assert decision.simulations == 30
+                assert set(decision.prior_probs.keys()) == legal_set
+                assert math.isclose(
+                    sum(decision.prior_probs.values()), 1.0, abs_tol=1e-6
+                )
+                assert math.isclose(
+                    sum(decision.action_scores.values()), 1.0, abs_tol=1e-6
+                )
+                assert agent.last_tree_nodes_released == decision.nodes_visited
+
+    @pytest.mark.parametrize(
+        ("board_tag", "rows", "cols", "win_k"),
+        [("3x3_k3", 3, 3, 3), ("4x4_k4", 4, 4, 4)],
+    )
+    def test_all_7_levels_seed_reproducibility_and_full_games(
+        self,
+        board_tag: str,
+        rows: int,
+        cols: int,
+        win_k: int,
+    ) -> None:
+        game = ExtendedTicTacToe(rows=rows, cols=cols, win_k=win_k)
+        roster_a = _make_all_7_level_agents(board_tag, seed=77, search_depth=2, n_simulations=25)
+        roster_b = _make_all_7_level_agents(board_tag, seed=77, search_depth=2, n_simulations=25)
+
+        for agent_a, agent_b in zip(roster_a, roster_b, strict=True):
+            dec_a = agent_a.select_action(game)
+            dec_b = agent_b.select_action(game)
+            assert dec_a.action == dec_b.action
+            assert dec_a.action_scores == dec_b.action_scores
+
+            agent_a.select_action(game)
+            agent_a.reset(seed=77)
+            dec_reset = agent_a.select_action(game)
+            assert dec_reset.action == dec_b.action
+            assert dec_reset.action_scores == dec_b.action_scores
+
+        # Play full games pairing Level 7 against every other tier cleanly.
+        hybrid_x = roster_a[-1]
+        for opponent in roster_b[:-1]:
+            match = ExtendedTicTacToe(rows=rows, cols=cols, win_k=win_k)
+            hybrid_x.reset(seed=77)
+            opponent.reset(seed=88)
+            while not match.is_terminal():
+                actor = hybrid_x if match.current_player == Player.X else opponent
+                match.step(actor.select_action(match).action)
+            assert match.result(int(Player.X)) in (-1.0, 0.0, 1.0)
