@@ -1,0 +1,130 @@
+name: tournament_4x4_k4
+description: Paired Round-Robin tournament configuration for 7-level Extended Tic-Tac-Toe AI evaluation.
+board:
+  rows: 4
+  cols: 4
+  win_k: 4
+seed: 42
+n_pairs: 100
+
+budget_modes:
+  default:
+    time_budget_ms: null
+    n_simulations: null
+  fixed_10ms:
+    time_budget_ms: 10.0
+    n_simulations: null
+  fixed_50ms:
+    time_budget_ms: 50.0
+    n_simulations: null
+
+agents:
+  - agent_id: L1_Random
+    agent_class: RandomAgent
+    level: 1
+    params: {}
+
+  - agent_id: L2_RuleBased
+    agent_class: RuleBasedAgent
+    level: 2
+    params:
+      tie_break: random
+
+  - agent_id: L3_AlphaBeta
+    agent_class: AlphaBetaAgent
+    level: 3
+    params:
+      max_depth: 4
+      use_alpha_beta: true
+      use_move_ordering: true
+
+  - agent_id: L4_MCTS
+    agent_class: MCTSAgent
+    level: 4
+    params:
+      n_simulations: 200
+      c_uct: 1.4142135623730951
+
+  - agent_id: L5_StrongPolicy
+    agent_class: PolicyNetworkAgent
+    level: 5
+    params:
+      checkpoint_path: checkpoints/strongpolicynet_4x4_k4.pt
+      sample: false
+      device: cpu
+
+  - agent_id: L6_DQN
+    agent_class: DQNAgent
+    level: 6
+    params:
+      checkpoint_path: checkpoints/dqnnet_4x4_k4_seed42.pt
+      epsilon: 0.0
+      device: cpu
+
+  - agent_id: L7_HybridMCTS
+    agent_class: HybridMCTSAgent
+    level: 7
+    params:
+      policy_checkpoint_path: checkpoints/strongpolicynet_4x4_k4.pt
+      value_checkpoint_path: checkpoints/valuenet_4x4_k4.pt
+      n_simulations: 200
+      c_puct: 1.5
+      leaf_eval_mode: mixed
+      value_weight: 0.5
+      max_cache_size: 4096
+      device: cpu
+
+agents_3x3_k3:
+  - agent_id: L1_Random
+    agent_class: RandomAgent
+    level: 1
+    params: {}
+
+  - agent_id: L2_RuleBased
+    agent_class: RuleBasedAgent
+    level: 2
+    params:
+      tie_break: random
+
+  - agent_id: L3_AlphaBeta
+    agent_class: AlphaBetaAgent
+    level: 3
+    params:
+      max_depth: 9
+      use_alpha_beta: true
+      use_move_ordering: true
+
+  - agent_id: L4_MCTS
+    agent_class: MCTSAgent
+    level: 4
+    params:
+      n_simulations: 200
+      c_uct: 1.4142135623730951
+
+  - agent_id: L5_StrongPolicy
+    agent_class: PolicyNetworkAgent
+    level: 5
+    params:
+      checkpoint_path: checkpoints/strongpolicynet_3x3_k3.pt
+      sample: false
+      device: cpu
+
+  - agent_id: L6_TabularQ
+    agent_class: TabularQAgent
+    level: 6
+    params:
+      checkpoint_path: checkpoints/tabular_q_3x3_k3_seed42.pkl
+      epsilon: 0.0
+
+  - agent_id: L7_HybridMCTS
+    agent_class: HybridMCTSAgent
+    level: 7
+    params:
+      policy_checkpoint_path: checkpoints/strongpolicynet_3x3_k3.pt
+      value_checkpoint_path: checkpoints/valuenet_3x3_k3.pt
+      n_simulations: 200
+      c_puct: 1.5
+      leaf_eval_mode: mixed
+      value_weight: 0.5
+      max_cache_size: 4096
+      device: cpu

@@ -3,7 +3,7 @@
 Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa Cấp Độ (Extended Tic-Tac-Toe `M×N, K`)**. Mọi trạng thái `DONE` đều phải đi kèm bằng chứng kiểm chứng (`pytest` output, đường dẫn checkpoint, hoặc raw log) theo đúng quy định trong [RULES.md](./RULES.md) và kế hoạch tại [TASKS.md](./TASKS.md).
 
 - **Cập nhật lần cuối:** `2026-11-17`
-- **Giai đoạn hiện tại:** Đã đóng & nghiệm thu **Sprint 3 (`4 / 4`)** — Hoàn tất toàn bộ tác tử Cấp 1–7 (`HybridMCTSAgent` + bộ benchmark đối kháng 7 cấp độ), sẵn sàng chuyển sang **Sprint 4**
+- **Giai đoạn hiện tại:** Đã đóng & nghiệm thu **Sprint 3 (`4 / 4`)**, kích hoạt **Sprint 4 (`1 / 4`)** — Hoàn tất **Task T4.1** (`TournamentRunner` Paired Round-Robin & Interactive Rich CLI Controller)
 
 ---
 
@@ -15,7 +15,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `4 / 4` | `DONE` | `pytest tests/test_engine.py` pass 100% (`29 passed`); `ruff` sạch |
 | **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `5 / 5` | `DONE` | Nghiệm thu & đóng Sprint 2 (`45 passed` contract/search; full suite `216 passed`); `ruff` sạch |
 | **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `4 / 4` | `DONE` | Nghiệm thu & đóng Sprint 3: đủ checkpoints + `.meta.json` đa seed Cấp 5–6, `HybridMCTSAgent` (`rollout`/`mixed` + LRU cache), `test_hybrid_mcts_agent.py` & `test_agents_contract.py` (`33 passed`), full suite `263 passed`, `ruff` sạch |
-| **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ1, RQ2, RQ3`) | `0 / 4` | `TODO` | Raw JSONL logs & 95% CI hoàn chỉnh |
+| **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ1, RQ2, RQ3`) | `1 / 4` | `IN_PROGRESS` | Hoàn tất `T4.1` (`TournamentRunner` + Rich CLI Controller); `pytest -v` `292 passed`; `ruff` sạch |
 | **Sprint 5** | Rich CLI Demo, Visualizer (`Fig 1..5`), `README.md` & Rà soát Rubric | `0 / 3` | `TODO` | Demo ổn định + tái lập 1-lệnh |
 
 ---
@@ -48,7 +48,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | **T3.2** | `dataset_gen.py` (game-level split) & `train_supervised.py` + `policy_agent.py` | `DONE` | `2026-11-16` | `pytest tests/test_supervised_and_policy_agents.py -v`: `11 passed`; `pytest -v`: `244 passed`; `ruff check src/ tests/ scripts/`: `All checks passed!`; sinh dataset chia theo `game_id` (`2,000` ván `3×3` & `5,000` ván `4×4`) và train thực tế `FastPolicyNet`, `StrongPolicyNet`, `ValueNet` kèm `.meta.json` & `.jsonl` |
 | **T3.3** | `rl_agent.py` (`TabularQAgent` & `DQNAgent`) + train đa seed (3 seeds) | `DONE` | `2026-11-16` | `pytest tests/test_rl_agents_and_training.py -v`: `6 passed`; `pytest -v`: `250 passed`; `ruff check src/ tests/ scripts/`: `All checks passed!`; train đủ 3 seed (`42, 123, 999`) cho `TabularQ` (`3×3 K=3`, `0.950–0.955` vs Random, `0.500` vs Rule), `DQN` `4×4 K=4` (`0.935–0.980` vs Random, thắng 87%–96% không thua), `DQN` `4×4 K=3` (`0.970–0.980` vs Random, `50-0-50` vs Rule) |
 | **T3.4** | Cấp 7 `HybridMCTSAgent` (PUCT + prior cache + `rollout`/`mixed` leaf eval) | `DONE` | `2026-11-17` | `pytest tests/test_hybrid_mcts_agent.py tests/test_agents_contract.py -v`: `33 passed`; `pytest -v`: `263 passed`; `ruff check src/ tests/ scripts/`: `All checks passed!`; benchmark đối kháng 7 cấp `4×4 K=4` (`560` ván, LRU cache hit `57.8%`–`67.6%`) |
-| **T4.1** | `TournamentRunner` (Paired Round-Robin 50/50 `X/O`, JSONL logger) | `TODO` | — | — |
+| **T4.1** | `TournamentRunner` (Paired Round-Robin 50/50 `X/O`, JSONL logger) & Interactive Rich CLI (`theme.py`, `cli_app.py`, `play.py`) | `DONE` | `2026-11-17` | `pytest -v`: `292 passed in 38.01s` (gồm `test_cli_controller.py` & `test_tournament_runner.py`); `ruff check src/ tests/ scripts/`: `All checks passed!`; smoke tournament `84` ván 7 cấp (`4×4 K=4`, `fixed_10ms`) lưu tại `logs/smoke_t4_1_4x4_k4_fixed10ms.jsonl` + demo `scripts/play.py` |
 | **T4.2** | `metrics.py` (Score, Wilson/Bootstrap 95% CI, p95) & `test_tournament_metrics.py` | `TODO` | — | — |
 | **T4.3** | Giải đấu chính `4×4 K=4` (Fixed Budget + Default) & đối chứng `3×3 K=3` | `TODO` | — | — |
 | **T4.4** | Chạy 4 kịch bản `ablations.py` (AB pruning, **RQ1**, **RQ2**, **RQ3**) | `TODO` | — | — |
@@ -85,6 +85,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 | `T3.3-DQN-4X4-K4` | `2026-11-16` | `Train + Benchmark` | `4×4 K=4`, `DQNAgent` Self-Play + Mixed Pool (`70/30`), `20,000` ep/seed (`seeds=[42, 123, 999]`), `N=100` paired/opponent | vs `Random`: `seed 42` `0.945` (`89-11-0`, `0.691 ms`), `seed 123` `0.980` (`96-4-0`, `0.641 ms`), `seed 999` `0.935` (`87-13-0`, `0.646 ms`); vs `RuleBased`: `seed 42/123` `0-100-0` (`0.500`), `seed 999` `0-94-6` (`0.470`) | `checkpoints/dqnnet_4x4_k4_seed{42,123,999}.pt` + `.meta.json`, `logs/train_dqn_4x4_k4_seed*.jsonl` |
 | `T3.3-DQN-4X4-K3` | `2026-11-16` | `Train + Benchmark` | `4×4 K=3`, `DQNAgent` Self-Play + Mixed Pool (`70/30`), `20,000` ep/seed (`seeds=[42, 123, 999]`), `N=100` paired/opponent | vs `Random`: `seed 42` `0.970` (`97-0-3`, `0.692 ms`), `seed 123` `0.970` (`97-0-3`, `0.719 ms`), `seed 999` `0.980` (`98-0-2`, `0.660 ms`); vs `RuleBased`: cả 3 seed đạt `50-0-50` (`0.500`, thắng 100% khi đi `X`, `0.67–0.73 ms`) | `checkpoints/dqnnet_4x4_k3_seed{42,123,999}.pt` + `.meta.json`, `logs/train_dqn_4x4_k3_seed*.jsonl` |
 | `T3.4-SPRINT3-7LVL-RR` | `2026-11-17` | `7-Level Paired Round-Robin` | `4×4 K=4`, 8 đại diện (đủ Cấp 1–7), `10 pairs/matchup` (`560` ván, `140` ván/agent) | `L1_Random` `0.100` (`1-26-113`, `X=0.150/O=0.050`, `0.036 ms`, `p95=0.048 ms`, `1.0` nodes); `L2_RuleBased` `0.579` (`22-118-0`, `X=0.586/O=0.571`, `0.083 ms`, `p95=0.123 ms`, `26.2` nodes); `L3_AlphaBeta` `0.550` (`14-126-0`, `X=0.557/O=0.543`, `13.220 ms`, `p95=35.840 ms`, `944.8` nodes); `L4_MCTS` `0.607` (`30-110-0`, `X=0.629/O=0.586`, `14.936 ms`, `p95=30.200 ms`, `119.1` nodes / `150.0` sims); `L5_StrongPolicy` `0.521` (`15-116-9`, `X=0.529/O=0.514`, `0.451 ms`, `p95=0.671 ms`, `1.0` nodes); `L6_DQN` `0.539` (`21-109-10`, `X=0.500/O=0.579`, `0.361 ms`, `p95=0.548 ms`, `1.0` nodes); `L7_Hybrid_Rollout` `0.546` (`20-113-7`, `X=0.536/O=0.557`, `24.978 ms`, `p95=50.495 ms`, `64.0` nodes / `145.3` sims, LRU hit `57.8%` = `38307/66280`); `L7_Hybrid_Mixed` `0.557` (`21-114-5`, `X=0.557/O=0.557`, `24.738 ms`, `p95=50.502 ms`, `61.9` nodes / `143.6` sims, LRU hit `67.6%` = `43790/64731`) | `bench_sprint3.py` (scratch benchmark), real checkpoints (`4x4_k4`) |
+| `T4.1-SMOKE-RR` | `2026-11-17` | `Tournament (Paired RR Smoke)` | `4×4 K=4`, 7 cấp (`configs/tournament.yaml`), `fixed_10ms`, `n_pairs=2`, `seed=42` (`84` ván tổng, `24` ván/agent) | `L1_Random` `0.0833` (`1-2-21`, `0.041 ms`); `L2_RuleBased` `0.5625` (`3-21-0`, `0.084 ms`); `L3_AlphaBeta` `0.5833` (`4-20-0`, `7.273 ms`); `L4_MCTS` `0.6250` (`8-14-2`, `8.789 ms`); `L5_StrongPolicy` `0.5000` (`3-18-3`, `0.481 ms`); `L6_DQN` `0.6042` (`5-19-0`, `0.322 ms`); `L7_HybridMCTS` `0.5417` (`4-18-2`, `9.039 ms`); `0` lỗi `IllegalMoveError` | `logs/smoke_t4_1_4x4_k4_fixed10ms.jsonl` |
 
 ---
 
@@ -99,6 +100,6 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 
 ## 5. Hành động Tiếp theo (`Next Actions`)
 
-1. Khởi động **Sprint 4 (`T4.1`–`T4.4`) — Evaluation Harness, Paired Round-Robin & Ablation Studies**:
-   - **T4.1 & T4.2:** Triển khai `TournamentRunner` và module thống kê `metrics.py` (tính Score, Win/Draw/Loss theo vai `X`/`O`, latency mean/p95, nodes/sims và khoảng tin cậy 95% CI).
-   - **T4.3 & T4.4:** Chạy hệ thống giải đấu Paired Round-Robin chính thức và 4 thí nghiệm Ablation phục vụ `RQ1, RQ2, RQ3`, xuất raw JSONL logs và hoàn thiện báo cáo tổng hợp thực nghiệm.
+1. Tiếp tục **Sprint 4 (`T4.2`–`T4.4`) — Statistical Metrics, Full Round-Robin & Ablation Studies**:
+   - **T4.2:** Triển khai `src/ttt_ai/benchmark/metrics.py` (tính `Score`, **Wilson Score 95% CI**, **Bootstrap 95% CI**, $\Delta\text{Score} = \text{Score}_X - \text{Score}_O$, `mean_ms`, `p95_ms`, `avg_nodes/sims`) và bộ unit test `tests/test_tournament_metrics.py`.
+   - **T4.3 & T4.4:** Chạy giải đấu Paired Round-Robin chính thức (`4×4 K=4` ở cả `fixed_10ms`/`fixed_50ms`/`default` & đối chứng `3×3 K=3`) và 4 thí nghiệm `ablations.py` phục vụ `RQ1, RQ2, RQ3`, xuất raw JSONL logs đầy đủ.
