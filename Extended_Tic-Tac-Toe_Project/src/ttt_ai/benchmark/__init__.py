@@ -2,6 +2,23 @@
 
 from __future__ import annotations
 
+from ttt_ai.benchmark.metrics import (
+    AgentPerformanceMetrics,
+    HeadToHeadMetrics,
+    SeatAdvantageSummary,
+    TournamentSummary,
+    bootstrap_ci,
+    bootstrap_diff_ci,
+    compute_agent_metrics,
+    compute_head_to_head_metrics,
+    compute_seat_advantage,
+    export_summary_csv,
+    format_summary_markdown,
+    save_summary_markdown,
+    summarize_tournament_log,
+    summarize_tournament_records,
+    wilson_score_interval,
+)
 from ttt_ai.benchmark.tournament import (
     AgentSpec,
     BudgetModeConfig,
@@ -17,15 +34,30 @@ from ttt_ai.benchmark.tournament import (
 )
 
 __all__: list[str] = [
+    "AgentPerformanceMetrics",
     "AgentSpec",
     "BudgetModeConfig",
+    "HeadToHeadMetrics",
     "MatchRecord",
     "MoveRecord",
+    "SeatAdvantageSummary",
     "TournamentConfig",
     "TournamentRunner",
+    "TournamentSummary",
+    "bootstrap_ci",
+    "bootstrap_diff_ci",
     "collect_tournament_environment_meta",
+    "compute_agent_metrics",
+    "compute_head_to_head_metrics",
+    "compute_seat_advantage",
+    "export_summary_csv",
+    "format_summary_markdown",
     "instantiate_agent",
     "load_tournament_config",
     "load_tournament_log",
     "play_single_match",
+    "save_summary_markdown",
+    "summarize_tournament_log",
+    "summarize_tournament_records",
+    "wilson_score_interval",
 ]
