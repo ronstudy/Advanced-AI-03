@@ -1,14 +1,15 @@
-# ARCHITECTURE — Kiến trúc Hệ thống Game AI Đa Cấp Độ (`ttt_ai`)
+# 02. Sổ tay Kiến trúc Hệ thống & Thiết kế Thuật toán (`ARCHITECTURE.md`)
 
-Tài liệu này mô tả kiến trúc phần mềm mô-đun hóa, hợp đồng chuẩn Game API, thiết kế các lớp thuật toán Cấp 1–7 (bao gồm `Fast/Strong Policy Network`, `Value Network`, `Tabular Q / DQN` và `Hybrid MCTS`), schema dữ liệu/checkpoint và luồng giải đấu Round-Robin công bằng cho trò chơi **Extended Tic-Tac-Toe (`M×N, K`)**.
-
-Tài liệu tuân thủ nghiêm ngặt các yêu cầu và quy tắc trong [PRD.md](./PRD.md) và [RULES.md](./RULES.md).
+- **Vai trò tài liệu:** Sổ tay kiến trúc phần mềm, giao ước API và chi tiết thuật toán Cấp 1–7 (Tài liệu số `02` trong lộ trình [PRD.md](./PRD.md) `01 → 06`)
+- **Tài liệu liên quan:**
+  - Trước: [01. PRD.md](./PRD.md) — Mục tiêu đề tài, 3 câu hỏi nghiên cứu (`RQ1–RQ3`) và mô hình MDP
+  - Tiếp theo: [03. DESIGN.md](./DESIGN.md) — Thiết kế giao diện `Rich CLI` và hệ thống 5 biểu đồ (`Fig 1..5`)
 
 ---
 
-## 1. Tổng quan Kiến trúc Phân lớp & Phụ thuộc
+## 1. Tổng quan Kiến trúc Phân lớp & Ranh giới Phụ thuộc
 
-Hệ thống áp dụng kiến trúc phân lớp lỏng (*loosely coupled*), chia làm 5 phân hệ độc lập: **`engine`**, **`agents`**, **`training`**, **`benchmark`**, và **`ui`**.
+Mục tiêu của thiết kế kiến trúc là giữ cho logic trò chơi, các thuật toán AI, quy trình huấn luyện, hệ thống đo lường và giao diện hiển thị tách rời nhau (*loosely coupled architecture*). Toàn hệ thống chia thành 5 phân hệ độc lập: **`engine`**, **`agents`**, **`training`**, **`benchmark`**, và **`ui`**.
 
 ```mermaid
 flowchart TD
@@ -32,102 +33,161 @@ flowchart TD
     LOG -->|"Wilson/Bootstrap CI & Plots"| RPT["reports/ (PNG, CSV, MD)"]
 ```
 
-### Quy tắc ranh giới phụ thuộc (Dependency Boundaries)
-1. **`engine/` thuần Python + NumPy:** Tuyệt đối không import `torch`, `rich`, `matplotlib`, hay bất kỳ lớp nào từ `agents/`, `training/`, `benchmark/`, `ui/`.
-2. **`agents/` giao tiếp với trò chơi chỉ qua Public Game API:** Mọi tác tử kế thừa `BaseAgent` và chỉ thao tác trạng thái qua `legal_actions()`, `clone()`, `step()`, `undo()`, `is_terminal()`, `result()`, `canonical_board()`.
-3. **`src/` layout kết hợp `pyproject.toml`:** Đảm bảo mọi script trong `scripts/`, test trong `tests/`, và notebook phân tích import nhất quán gói `ttt_ai` qua editable install (`pip install -e .`), tránh lỗi đường dẫn tương đối trên Windows.
+### Nguyên tắc ranh giới phụ thuộc (Dependency Boundaries)
+1. **`engine/` thuần Python + NumPy:** Không phụ thuộc vào `torch`, `rich`, `matplotlib` hay bất kỳ lớp nào từ `agents/`, `training/`, `benchmark/`, `ui/`. Điều này giúp engine chạy nhẹ, kiểm thử nhanh và tách biệt hoàn toàn với thuật toán AI.
+2. **`agents/` chỉ giao tiếp qua Public Game API:** Mọi tác tử kế thừa `BaseAgent` và chỉ đọc/thao tác trạng thái trò chơi thông qua `legal_actions()`, `clone()`, `step()`, `undo()`, `is_terminal()`, `result()`, `canonical_board()`.
+3. **`src/` layout kết hợp `pyproject.toml`:** Đóng gói `ttt_ai` ở chế độ editable (`pip install -e .`) giúp các script trong `scripts/` và bài test trong `tests/` import nhất quán mà không bị lỗi đường dẫn tương đối trên Windows.
 
 ---
 
 ## 2. Cấu trúc Thư mục Dự án
 
+Cây thư mục thực tế của toàn bộ repository (loại bỏ các thư mục cache tự sinh như `.pytest_cache/`, `.ruff_cache/`, `__pycache__/`):
+
 ```text
-Advanced_AI_Tic-Tac-Toe_Project/
-├── Planning/
-│   ├── PRD.md                        # Đặc tả bài toán, 3 RQ (RQ1, RQ2, RQ3) & Rubric
-│   ├── RULES.md                      # Quy chuẩn PEP 8, API contract & trung thực học thuật
-│   ├── ARCHITECTURE.md               # Kiến trúc hệ thống & đặc tả kỹ thuật (tài liệu này)
-│   ├── DESIGN.md                     # Thiết kế giao diện Rich CLI & hệ thống biểu đồ
-│   ├── TASKS.md                      # Phân rã công việc 5 Sprint
-│   └── PROGRESS.md                   # Bảng tiến độ & nhật ký lỗi kỹ thuật
-├── References/                       # Tài liệu đề cương, slide, sách & mã nguồn tham khảo
+Extended_Tic-Tac-Toe_Project/
+├── Planning/                                     # Bộ 6 sổ tay thiết kế, quy chuẩn & nhật ký (01 -> 06)
+│   ├── PRD.md                                    # 01. Định hướng đề tài, 3 RQ (RQ1–RQ3), MDP & Rubric
+│   ├── ARCHITECTURE.md                           # 02. Sổ tay kiến trúc hệ thống & thuật toán (tài liệu này)
+│   ├── DESIGN.md                                 # 03. Thiết kế giao diện Rich CLI & hệ thống biểu đồ
+│   ├── RULES.md                                  # 04. Nguyên tắc trung thực học thuật & quy ước kỹ thuật
+│   ├── TASKS.md                                  # 05. Kế hoạch triển khai 5 Sprint & tiêu chí kiểm chứng
+│   └── PROGRESS.md                               # 06. Nhật ký thực nghiệm, số liệu & lịch sử gỡ lỗi
+├── References/                                   # Tài liệu môn học, sách & kho mã tham khảo (chỉ đọc)
 │   ├── TTNTNC_De_tai_cuoi_ky_Game_AI.pdf
 │   ├── Tic tac toe Game.pdf
 │   ├── 2024 - Liu - AlphaGo Simplified Rule-Based AI and Deep Learning in Everyday Games.pdf
-│   ├── AlphaGoSimplified-main/       # Mã nguồn tham khảo sách Mark Liu (chỉ đọc/đối chiếu)
-│   └── Reversi-mcts-master/          # Mã nguồn tham khảo MCTS (chỉ đọc/đối chiếu)
-├── configs/
-│   ├── game_4x4_k4.yaml              # Chuẩn chính (Primary Benchmark)
-│   ├── game_4x4_k3.yaml              # Biến thể độ nhạy lợi thế đi trước (RQ2)
-│   ├── game_3x3_k3.yaml              # Biến thể đối chứng slide
-│   ├── game_5x5_k4.yaml              # Biến thể mở rộng tổng quát hóa (Bonus)
-│   ├── train_supervised.yaml         # Cấu hình sinh dữ liệu expert & train Policy/Value Net
-│   ├── train_rl.yaml                 # Cấu hình Tabular Q (3x3) & DQN Self-Play (4x4)
-│   └── tournament.yaml               # Cấu hình Round-Robin & 4 thí nghiệm Ablation
+│   ├── Artificial Intelligence A Modern Approach 4th.pdf
+│   ├── SuttonBartoIPRLBook2ndEd.pdf
+│   ├── AlphaGoSimplified-main/                   # Kho mã đối chiếu sách Mark Liu (notebooks, files/, utils/)
+│   └── Reversi-mcts-master/                      # Kho mã đối chiếu MCTS C# (Reversi-game/, Reversi-mcts/)
+├── configs/                                      # 7 tệp cấu hình YAML tập trung
+│   ├── game_3x3_k3.yaml                          # Biến thể đối chứng slide
+│   ├── game_4x4_k3.yaml                          # Biến thể độ nhạy lợi thế đi trước (RQ2)
+│   ├── game_4x4_k4.yaml                          # Chuẩn chính (Primary Benchmark)
+│   ├── game_5x5_k4.yaml                          # Biến thể mở rộng tổng quát hóa (Bonus)
+│   ├── train_supervised.yaml                     # Cấu hình sinh dữ liệu expert & train Policy/Value Net
+│   ├── train_rl.yaml                             # Cấu hình Tabular Q (3x3) & DQN Self-Play (4x4)
+│   └── tournament.yaml                           # Cấu hình Paired Round-Robin & 4 thí nghiệm Ablation
 ├── src/
 │   └── ttt_ai/
 │       ├── __init__.py
-│       ├── config.py                 # YAML loader -> Typed Dataclasses & seed_everything()
+│       ├── config.py                             # YAML loader -> Typed Dataclasses & seed_everything()
 │       ├── engine/
 │       │   ├── __init__.py
-│       │   ├── exceptions.py         # IllegalMoveError, InvalidConfigError
-│       │   ├── rules.py              # check_win_around O(K), win_windows(), positional_weights()
-│       │   └── game.py               # ExtendedTicTacToe cài đặt đầy đủ Game API chuẩn
+│       │   ├── exceptions.py                     # IllegalMoveError, InvalidConfigError
+│       │   ├── rules.py                          # check_win_around O(K), win_windows(), positional_weights()
+│       │   └── game.py                           # ExtendedTicTacToe cài đặt đầy đủ Game API chuẩn
 │       ├── agents/
 │       │   ├── __init__.py
-│       │   ├── base.py               # BaseAgent, AgentDecision, SearchTimeoutError
-│       │   ├── random_agent.py       # Cấp 1: RandomAgent
-│       │   ├── rule_based_agent.py   # Cấp 2: RuleBasedAgent (Newell & Simon mở rộng)
-│       │   ├── minimax_agent.py      # Cấp 3: Minimax, Alpha-Beta, Heuristic, Iterative Deepening
-│       │   ├── mcts_agent.py         # Cấp 4: MCTS UCT (Rollout ngẫu nhiên)
-│       │   ├── nn_models.py          # FastPolicyNet, StrongPolicyNet, ValueNet, DQNNet
-│       │   ├── policy_agent.py       # Cấp 5: PolicyNetworkAgent & ValueGreedyAgent
-│       │   ├── rl_agent.py           # Cấp 6: TabularQAgent (3x3) & DQNAgent (4x4 / MxN)
-│       │   └── hybrid_mcts_agent.py  # Cấp 7: HybridMCTSAgent (PUCT + Policy / Value)
+│       │   ├── base.py                           # BaseAgent, AgentDecision, SearchTimeoutError
+│       │   ├── random_agent.py                   # Cấp 1: RandomAgent
+│       │   ├── rule_based_agent.py               # Cấp 2: RuleBasedAgent (Newell & Simon mở rộng)
+│       │   ├── minimax_agent.py                  # Cấp 3: Minimax, Alpha-Beta, Heuristic, Iterative Deepening
+│       │   ├── mcts_agent.py                     # Cấp 4: MCTS UCT (Rollout ngẫu nhiên)
+│       │   ├── nn_models.py                      # FastPolicyNet, StrongPolicyNet, ValueNet, DQNNet
+│       │   ├── policy_agent.py                   # Cấp 5: PolicyNetworkAgent & ValueGreedyAgent
+│       │   ├── rl_agent.py                       # Cấp 6: TabularQAgent (3x3) & DQNAgent (4x4 / MxN)
+│       │   └── hybrid_mcts_agent.py              # Cấp 7: HybridMCTSAgent (PUCT + Policy / Value)
 │       ├── training/
 │       │   ├── __init__.py
-│       │   ├── dataset_gen.py        # Sinh dữ liệu expert, loại trùng, chia theo game_id
-│       │   ├── train_supervised.py   # Train FastPolicyNet, StrongPolicyNet & ValueNet
-│       │   ├── train_q_tabular.py    # Train Tabular Q-learning (3x3, canonical keys)
-│       │   ├── train_dqn_selfplay.py # Experience Replay, Target Net, Mixed Opponent Pool
-│       │   └── checkpoint_io.py      # Lưu/nạp trọng số kèm meta.json (xác minh đã train)
+│       │   ├── dataset_gen.py                    # Sinh dữ liệu expert, loại trùng, chia theo game_id
+│       │   ├── train_supervised.py               # Train FastPolicyNet, StrongPolicyNet & ValueNet
+│       │   ├── train_q_tabular.py                # Train Tabular Q-learning (3x3, canonical keys)
+│       │   ├── train_dqn_selfplay.py             # Experience Replay, Target Net, Mixed Opponent Pool
+│       │   └── checkpoint_io.py                  # Lưu/nạp trọng số kèm meta.json (xác minh đã train)
 │       ├── benchmark/
 │       │   ├── __init__.py
-│       │   ├── tournament.py         # Paired Round-Robin Runner (cân bằng X/O, đa seed)
-│       │   ├── metrics.py            # Score, Wilson 95% CI, Bootstrap 95% CI, p95 latency
-│       │   ├── ablations.py          # 4 kịch bản Ablation (AB pruning, RQ1, RQ2, RQ3)
-│       │   └── visualizer.py         # Xuất Fig 1..5 PNG (300 DPI) & summary CSV/MD
+│       │   ├── tournament.py                     # Paired Round-Robin Runner (cân bằng X/O, đa seed)
+│       │   ├── metrics.py                        # Score, Wilson 95% CI, Bootstrap 95% CI, p95 latency
+│       │   ├── ablations.py                      # 4 kịch bản Ablation (AB pruning, RQ1, RQ2, RQ3)
+│       │   └── visualizer.py                     # Xuất Fig 1..5 PNG (300 DPI) & summary CSV/MD
 │       └── ui/
 │           ├── __init__.py
-│           ├── theme.py              # Bảng màu Rich, thang nhiệt heatmap, fallback ASCII
-│           └── cli_app.py            # Rich CLI Demo (Human vs AI, AI vs AI, Telemetry)
-├── scripts/
+│           ├── theme.py                          # Bảng màu Rich, thang nhiệt heatmap, fallback ASCII
+│           └── cli_app.py                        # Rich CLI Demo (Human vs AI, AI vs AI, Telemetry)
+├── scripts/                                      # 6 script CLI tái lập thực nghiệm & demo
 │   ├── generate_dataset.py
 │   ├── train_all.py
 │   ├── run_tournament.py
 │   ├── run_ablations.py
 │   ├── plot_results.py
 │   └── play.py
-├── tests/
+├── tests/                                        # conftest.py + 18 module kiểm thử tự động (347 test cases)
+│   ├── conftest.py
+│   ├── test_config.py
+│   ├── test_rules.py
 │   ├── test_engine.py
-│   ├── test_agents_contract.py
+│   ├── test_base_agent.py
+│   ├── test_level1_level2_agents.py
+│   ├── test_minimax_agent.py
+│   ├── test_mcts_agent.py
 │   ├── test_search_agents.py
-│   └── test_tournament_metrics.py
-├── checkpoints/                      # Trọng số + *.meta.json
-├── logs/                             # Raw *.jsonl (matches, ablations, training curves)
-├── reports/                          # figures/*.png, summary_tables.md, summary_metrics.csv
+│   ├── test_nn_and_checkpoint_io.py
+│   ├── test_supervised_and_policy_agents.py
+│   ├── test_rl_agents_and_training.py
+│   ├── test_hybrid_mcts_agent.py
+│   ├── test_agents_contract.py
+│   ├── test_tournament_metrics.py
+│   ├── test_tournament_runner.py
+│   ├── test_ablations.py
+│   ├── test_cli_controller.py
+│   └── test_visualizer.py
+├── checkpoints/                                  # 15 cặp trọng số (.pt/.pkl) + metadata (.meta.json)
+│   ├── fastpolicynet_{3x3_k3,4x4_k4}.{pt,meta.json}
+│   ├── strongpolicynet_{3x3_k3,4x4_k4}.{pt,meta.json}
+│   ├── valuenet_{3x3_k3,4x4_k4}.{pt,meta.json}
+│   ├── tabular_q_3x3_k3_seed{42,123,999}.{pkl,meta.json}
+│   ├── dqnnet_4x4_k3_seed{42,123,999}.{pt,meta.json}
+│   └── dqnnet_4x4_k4_seed{42,123,999}.{pt,meta.json}
+├── logs/                                         # Dữ liệu thô thực nghiệm (.npz & .jsonl)
+│   ├── datasets/
+│   │   ├── supervised_3x3_k3.npz
+│   │   └── supervised_4x4_k4.npz
+│   ├── smoke_t4_1_4x4_k4_fixed10ms.jsonl         # Smoke tournament (84 ván)
+│   ├── tournament_4x4_k4_fixed_10ms.jsonl        # Giải đấu 4x4 K=4 (10 ms/move, 4,200 ván)
+│   ├── tournament_4x4_k4_fixed_50ms.jsonl        # Giải đấu 4x4 K=4 (50 ms/move, 4,200 ván)
+│   ├── tournament_4x4_k4_default.jsonl           # Giải đấu 4x4 K=4 (Default config, 4,200 ván)
+│   ├── tournament_3x3_k3_default.jsonl           # Giải đấu đối chứng 3x3 K=3 (4,200 ván)
+│   ├── ablation_ab_pruning.jsonl                 # Ablation 1: Alpha-Beta & Move Ordering
+│   ├── ablation_rq1_hybrid_mcts.jsonl            # Ablation 2 (RQ1): Policy vs Pure MCTS vs Hybrid MCTS
+│   ├── ablation_rq2_seat_advantage.jsonl         # Ablation 3 (RQ2): Lợi thế người đi trước
+│   ├── ablation_rq3_rl_generalization.jsonl      # Ablation 4 (RQ3): RL Self-Play vs Supervised
+│   ├── train_{fastpolicynet,strongpolicynet,valuenet}_{3x3_k3,4x4_k4}.jsonl
+│   ├── train_tabular_q_3x3_k3_seed{42,123,999}.jsonl
+│   └── train_dqn_{4x4_k3,4x4_k4}_seed{42,123,999}.jsonl
+├── reports/                                      # Biểu đồ 300 DPI & bảng tổng hợp kết quả
+│   ├── figures/
+│   │   ├── fig1_head_to_head_matrix.png
+│   │   ├── fig2_latency_and_nodes.png
+│   │   ├── fig3_ablation_rq1_and_alphabeta.png
+│   │   ├── fig4_ablation_rq2_seat_advantage.png
+│   │   └── fig5_ablation_rq3_learning_and_generalization.png
+│   ├── summary_metrics.csv
+│   ├── summary_tables.md
+│   ├── sample_failure_cases.md
+│   ├── ablation_metrics.csv
+│   ├── ablation_summary.md
+│   ├── tournament_3x3_k3_default_{metrics.csv,summary.md}
+│   ├── tournament_4x4_k4_default_{metrics.csv,summary.md}
+│   ├── tournament_4x4_k4_fixed_10ms_{metrics.csv,summary.md}
+│   ├── tournament_4x4_k4_fixed_50ms_{metrics.csv,summary.md}
+│   └── tournament_suite_{metrics.csv,summary.md}
+├── terminal_test/                                # Ảnh chụp terminal kiểm chứng Sprint & demo
+│   ├── demo_play/                                # 4 ảnh demo (Classic Reference, First-Mover Sensitivity, Generalization, Primary Benchmark)
+│   └── sprint_test/                              # Ảnh chụp kiểm chứng từng task Sprint1_T1.2 .. Sprint5_T5.2
 ├── pyproject.toml
 └── README.md
 ```
 
 ---
 
-## 3. Thiết kế Chuẩn Game API & Tương tác Tác tử
+## 3. Thiết kế Game API & Luồng Thực thi Tác tử
 
 ### 3.1. Lớp `ExtendedTicTacToe` (`src/ttt_ai/engine/game.py`)
-Trạng thái bàn cờ lưu bằng mảng 2D `np.ndarray(shape=(M, N), dtype=np.int8)` với `Player.X = 1`, `Player.O = -1`, `EMPTY = 0`, kèm stack `_history` gồm `(action, prev_player)` để thao tác `step()` và `undo()` đạt $O(1)$ không cấp phát bộ nhớ lặp lại trong vòng lặp Alpha-Beta.
+Trạng thái bàn cờ được lưu bằng mảng 2D `np.ndarray(shape=(M, N), dtype=np.int8)` với `Player.X = 1`, `Player.O = -1`, `EMPTY = 0`, kèm stack `_history` gồm `(action, prev_player)` để thao tác `step()` và `undo()` đạt $O(1)$ mà không cấp phát bộ nhớ lặp lại trong vòng lặp Alpha-Beta.
 
-| Phương thức | Chữ ký (Signature) | Hành vi & Ràng buộc kỹ thuật |
+| Phương thức | Chữ ký (Signature) | Hành vi & Lưu ý kỹ thuật |
 |---|---|---|
 | `reset` | `reset() -> np.ndarray` | Xóa bàn cờ về `0`, đặt lượt đầu `Player.X (+1)`, xóa `_history` và cache kết thúc; trả về bản copy `(M, N)`. |
 | `legal_actions` | `legal_actions() -> list[int]` | Trả về danh sách chỉ số `a ∈ [0, M*N - 1]` đang trống theo thứ tự tăng dần; trả về `[]` nếu `is_terminal()` là `True`. |
@@ -158,7 +218,7 @@ class AgentDecision:
     prior_probs: dict[int, float] = field(default_factory=dict)
 ```
 
-- Trường `prior_probs` (tùy chọn, dùng cho Cấp 7 `HybridMCTS`) lưu xác suất tiên nghiệm $P(s, a)$ từ mạng Policy song song với phân phối lượt thăm sau tìm kiếm `action_scores`, cho phép Rich CLI và script phân tích chứng minh trực quan cách tìm kiếm cây điều chỉnh gợi ý mạng nơ-ron (**RQ1**).
+- Trường `prior_probs` (dùng cho Cấp 7 `HybridMCTS`) lưu xác suất tiên nghiệm $P(s, a)$ từ mạng Policy song song với phân phối lượt thăm sau tìm kiếm `action_scores`, giúp Rich CLI và script phân tích đối chiếu trực quan cách tìm kiếm cây điều chỉnh gợi ý mạng nơ-ron (**RQ1**).
 
 ```mermaid
 sequenceDiagram
@@ -182,12 +242,16 @@ sequenceDiagram
     Game-->>Runner: (next_obs, reward, done, info)
 ```
 
+> **Ghi chú kinh nghiệm (Tối ưu tốc độ Engine & Search):**
+> - Trong tìm kiếm theo chiều sâu (`Minimax`/`AlphaBeta`), nên tạo duy nhất 1 bản `game.clone()` ở nút gốc rồi dùng cặp `step()/undo()` trên đó thay vì `clone()` ở mọi nút con; cách này tránh cấp phát mảng NumPy hàng chục nghìn lần mỗi nước đi.
+> - Kiểm tra thắng cục bộ quanh ô vừa đánh `check_win_around` ở độ phức tạp $O(K)$ nhanh hơn hẳn việc quét lại toàn bộ bàn cờ $O(M \times N)$ sau mỗi bước `step()`.
+
 ---
 
 ## 4. Kiến trúc Chi tiết các Cấp độ Tác tử AI (Cấp 1 – 7)
 
 ### 4.1. Cấp 1 – 4: Baseline & Tìm kiếm Đối kháng Cổ điển
-- **Cấp 1 (`RandomAgent`):** Dùng `np.random.Generator` riêng gắn theo `seed` để tái lập tuyệt đối.
+- **Cấp 1 (`RandomAgent`):** Dùng `np.random.Generator` riêng gắn theo `seed` để tái lập kết quả ổn định.
 - **Cấp 2 (`RuleBasedAgent`):** 6 tầng luật ưu tiên từ cao xuống thấp: *(1) Thắng ngay* $\rightarrow$ *(2) Chặn thắng ngay* $\rightarrow$ *(3) Tạo thế đôi (từ 2 cửa sổ mở đạt $K-1$ quân sau 1 nước)* $\rightarrow$ *(4) Chặn thế đôi đối phương* $\rightarrow$ *(5) Ô có `positional_weight` cao nhất (số cửa sổ thắng $K$ đi qua ô)* $\rightarrow$ *(6) Ngẫu nhiên có kiểm soát*.
 - **Cấp 3 (`MinimaxAgent` / `AlphaBetaAgent`):**
   - Thao tác `step()`/`undo()` trên một bản `game.clone()` duy nhất tại gốc.
@@ -208,27 +272,31 @@ Tổng quát hóa kiến trúc từ slide 44–48 và slide 61–62 của `Tic t
 | `StrongPolicyNet` | `Conv2d(1, 128, 3, padding=1) + ReLU` | `3 × Linear(64) + ReLU` | `Linear(64, M*N)` logits (`CrossEntropyLoss`) | Policy chính & làm prior $P(s, a)$ cho Cấp 7 |
 | `ValueNet` | `Conv2d(1, 128, 3, padding=1) + ReLU` | `Linear(128*M*N, 64)` $\rightarrow$ `Linear(64, 64)` | `Linear(64, 1) + Tanh` (`MSELoss` với outcome $z \in [-1, +1]$) | Đánh giá trạng thái độc lập (slide 61–62) & hỗ trợ nhánh Value trong Cấp 7 (RQ1) |
 
-- **Action Masking bắt buộc:** Khi `PolicyNetworkAgent` suy luận, mọi ô không nằm trong `legal_actions()` bị gán `logits = -1e9` trước khi `Softmax`. Khi `ValueGreedyAgent` (dùng `ValueNet` thuần để đối chiếu slide 61–62) chọn nước đi, agent duyệt các nước hợp lệ `clone/step` 1 bước và chọn nước có $-V(s')$ lớn nhất.
+- **Cơ chế Action Masking:** Khi `PolicyNetworkAgent` suy luận, mọi ô không nằm trong `legal_actions()` được gán `logits = -1e9` trước khi `Softmax`. Khi `ValueGreedyAgent` (dùng `ValueNet` thuần để đối chiếu slide 61–62) chọn nước đi, agent duyệt các nước hợp lệ `clone/step` 1 bước và chọn nước có $-V(s')$ lớn nhất.
 
 ### 4.3. Cấp 6: Reinforcement Learning (`TabularQAgent` & `DQNAgent`)
 - **`TabularQAgent` (Cho `3×3, K=3` — đối chứng slide 56):** Khóa trạng thái là byte string của `canonical_board`; cập nhật Q-value cho trò chơi zero-sum theo phương trình $Q(s,a) \leftarrow (1-\alpha) Q(s,a) + \alpha \cdot [r - \gamma \max_{a' \in \text{legal}(s')} Q(s', a')]$ (đảo dấu vì lượt kế là của đối thủ).
 - **`DQNAgent` (Cho `4×4, K=4`, `4×4, K=3` & tổng quát `M×N` — phục vụ RQ3):**
   - Mạng `DQNNet`: `Conv2d(1, 128, 3, padding=1) + ReLU` $\rightarrow$ `2 × Linear(64) + ReLU` $\rightarrow$ `Linear(M*N)` ước lượng Q-values.
-  - **Ổn định hóa Self-Play:**
+  - **Các kỹ thuật ổn định hóa Self-Play:**
     1. *Experience Replay Buffer* (dung lượng cấu hình, ví dụ `50,000` transitions) lưu tuple `(s_canon, a, r_terminal, s_next_canon, done, legal_mask_next)`.
     2. *Target Network* cập nhật cứng mỗi `target_update_steps` (hoặc soft Polyak $\tau$).
     3. *Masked Zero-Sum Bellman Target:* Với `done=True`, $y = r_{\text{terminal}}$; với `done=False`, $y = -\gamma \max_{a' \in \text{legal}(s')} Q_{\text{target}}(s', a')$.
-    4. *Mixed Training Opponent Pool:* Kết hợp 70% tự chơi với bản snapshot quá khứ của chính nó (cập nhật pool theo chu kỳ) + 30% đối thủ baseline (`Random`/`RuleBased`) để ngăn quên thảm họa (*catastrophic forgetting*).
+    4. *Mixed Training Opponent Pool:* Kết hợp 70% tự chơi với bản snapshot quá khứ của chính nó (cập nhật pool theo chu kỳ) + 30% đối thủ baseline (`Random`/`RuleBased`) để tránh quên thảm họa (*catastrophic forgetting*).
 
 ### 4.4. Cấp 7: `HybridMCTSAgent` — AlphaGo-inspired (`src/ttt_ai/agents/hybrid_mcts_agent.py`)
 Kiến trúc mô phỏng cảm hứng AlphaGo phục vụ trực tiếp **RQ1**, hỗ trợ chọn chế độ đánh giá nút lá (`leaf_eval_mode`) để thực nghiệm có kiểm soát:
 1. **Selection (PUCT):** Tại nút đã mở rộng, chọn $a$ tối đa hóa:
    $$\text{PUCT}(s, a) = Q(s, a) + c_{\text{puct}} \cdot P(s, a) \cdot \frac{\sqrt{\sum_{b} N(s, b)}}{1 + N(s, a)}$$
-2. **Expansion & Prior Caching:** Khi mở rộng nút mới $s$, gọi `StrongPolicyNet` lấy phân phối $P(s, \cdot)$ đã mask hợp lệ. Kết quả $(P(s,\cdot), V(s))$ được lưu vào **LRU Cache theo `(canonical_board.tobytes())`** để giảm triệt để độ trễ suy luận PyTorch trên các trạng thái lặp lại do hoán vị nước đi (*transpositions*).
+2. **Expansion & Prior Caching:** Khi mở rộng nút mới $s$, gọi `StrongPolicyNet` lấy phân phối $P(s, \cdot)$ đã mask hợp lệ. Kết quả $(P(s,\cdot), V(s))$ được lưu vào **LRU Cache theo `(canonical_board.tobytes())`** để giảm độ trễ suy luận PyTorch trên các trạng thái lặp lại do hoán vị nước đi (*transpositions*).
 3. **Leaf Evaluation (2 cấu hình phục vụ RQ1):**
    - `rollout`: Rollout ngẫu nhiên đến terminal (chuẩn `Mix_MCTS` dùng Policy prior + Rollout).
    - `mixed`: Kết hợp $\lambda \cdot V_\theta(s) + (1 - \lambda) \cdot z_{\text{rollout}}$ với $V_\theta(s)$ từ `ValueNet` (mô phỏng đầy đủ cả Policy + Value trong AlphaGo-inspired).
 4. **Backpropagation:** Lan truyền ngược kết quả lên gốc theo dấu luân phiên từng tầng.
+
+> **Ghi chú kinh nghiệm (Bẫy dấu trừ & Chi phí mạng trong Zero-Sum Game):**
+> - Vì `canonical_board` luôn đổi góc nhìn ở mỗi lượt đi, giá trị trạng thái kế tiếp $V(s')$ hoặc $\max Q(s', a')$ luôn phản ánh lợi thế của *đối thủ*. Do đó, cả `ValueGreedyAgent` (`-V(s')`), `TabularQAgent`, `DQNAgent` lẫn pha Backpropagation của `MCTS`/`HybridMCTS` đều phải **đảo dấu** khi quy về góc nhìn người chơi hiện tại.
+> - Trong `HybridMCTSAgent`, LRU Cache theo `canonical_board.tobytes()` đặc biệt quan trọng khi chạy dưới giới hạn thời gian chặt (`10 ms` / `50 ms`), vì nhiều nhánh hoán vị nước đi dẫn về cùng một thế cờ sẽ không phải gọi lại forward PyTorch.
 
 ---
 
@@ -256,7 +324,7 @@ flowchart LR
 ```
 
 ### 5.2. Schema Checkpoint Metadata (`checkpoints/<name>.meta.json`)
-Ngăn chặn tuyệt đối việc dùng nhầm trọng số chưa huấn luyện hoặc sai cấu hình bàn cờ:
+Cơ chế metadata giúp kiểm chứng trọng số đã được huấn luyện hợp lệ và khớp đúng cấu hình bàn cờ (ví dụ minh họa cấu trúc JSON):
 ```json
 {
   "agent_class": "StrongPolicyNet",
@@ -273,17 +341,27 @@ Ngăn chặn tuyệt đối việc dùng nhầm trọng số chưa huấn luyệ
   "weights_sha256": "..."
 }
 ```
-Khi khởi tạo `PolicyNetworkAgent`, `DQNAgent` hoặc `HybridMCTSAgent`, `checkpoint_io.py` tự động kiểm tra khớp `board_config` và sự tồn tại hợp lệ của `meta.json`.
+Khi khởi tạo `PolicyNetworkAgent`, `DQNAgent` hoặc `HybridMCTSAgent`, `checkpoint_io.py` kiểm tra khớp `board_config` và sự tồn tại hợp lệ của `meta.json` trước khi nạp mô hình.
 
 ### 5.3. Thiết kế Giải đấu & Schema Raw Log (`logs/*.jsonl`)
-- **Paired Round-Robin:** Với mỗi cặp `(A, B)` và ngân sách `N = 200` ván, chạy `100` cặp seed `s_0..s_99`; mỗi cặp gồm 1 ván `(X=A, O=B)` và 1 ván `(X=B, O=A)` để loại bỏ sai số thứ tự và tạo dữ liệu sạch cho **RQ2**.
-- **Hai chế độ thực nghiệm bắt buộc:**
+- **Paired Round-Robin:** Với mỗi cặp `(A, B)` và ngân sách `N = 200` ván, chạy `100` cặp seed `s_0..s_99`; mỗi cặp gồm 1 ván `(X=A, O=B)` và 1 ván `(X=B, O=A)` để loại bỏ sai số thứ tự và tạo dữ liệu đối xứng cho **RQ2**.
+- **Hai chế độ thực nghiệm chính:**
   1. **Fixed Budget Mode:** Cố định `time_budget_ms ∈ {10.0, 50.0}` cho các tác tử tìm kiếm; riêng nhánh Ablation RQ1 chạy thêm theo `n_simulations ∈ {50, 150, 400}`.
   2. **Default Mode:** Thông số mặc định minh bạch từ `configs/tournament.yaml`.
 - **Schema dòng JSONL:**
   - Dòng 1 (`type="meta"`): Ghi thông tin bàn cờ, chế độ ngân sách, cấu hình tất cả agent, phiên bản phần mềm và thông số phần cứng (CPU/GPU/RAM).
-  - Các dòng tiếp theo (`type="match"`): Ghi `match_id`, `pair_id`, `seed`, `agent_x`, `agent_o`, `winner` (`1`, `-1`, `0`), `score_x`, `score_o`, `num_moves`, `latencies_x_ms`, `latencies_o_ms`, `nodes_x`, `nodes_o`, và danh sách `moves` (`[action, latency_ms, nodes, sims, depth]`) để truy xuất ngược lại mọi ván thua/sai lầm khi phân tích.
+  - Các dòng tiếp theo (`type="match"`): Ghi `match_id`, `pair_id`, `seed`, `agent_x`, `agent_o`, `winner` (`1`, `-1`, `0`), `score_x`, `score_o`, `num_moves`, `latencies_x_ms`, `latencies_o_ms`, `nodes_x`, `nodes_o`, và danh sách `moves` (`[action, latency_ms, nodes, sims, depth]`) để truy xuất ngược lại mọi ván thua khi phân tích lỗi.
 - **Tính toán Thống kê (`metrics.py`):**
   - `score = (wins + 0.5 * draws) / total_games`.
   - **Wilson Score 95% CI** cho tỷ lệ thắng và **Bootstrap 95% CI (10,000 mẫu lặp)** cho `score` và $\Delta\text{Score} = \text{Score}_X - \text{Score}_O$.
   - Độ trễ nước đi (`mean_ms`, `p95_ms`, `max_ms`) tổng hợp ở mức từng nước đi trên toàn bộ ván đấu.
+
+---
+
+## 6. Checklist Tự Kiểm tra Trước Khi Cài đặt & Refactor
+
+- [x] `engine/` có hoàn toàn sạch các import từ `torch`, `rich`, `matplotlib` hoặc `agents/` không?
+- [x] Mọi tác tử tìm kiếm có đảm bảo giữ nguyên bàn cờ gốc sau khi kết thúc `select_action(game)` (dùng `clone()` hoặc `step()/undo()` cân bằng)?
+- [x] Các hàm đánh giá trạng thái kế tiếp trong trò chơi zero-sum (`ValueGreedyAgent`, `TabularQAgent`, `DQNAgent`, `MCTS/HybridMCTS` backprop) đã đảo dấu đúng góc nhìn người chơi chưa?
+- [x] File `meta.json` của mỗi checkpoint có lưu đủ `board_config`, `seed`, `weights_sha256` để ngăn nạp nhầm trọng số khác kích thước bàn cờ?
+- [x] Raw log `.jsonl` có ghi đầy đủ danh sách `moves` và `meta` phần cứng để có thể tái tổng hợp bảng biểu mà không cần chạy lại giải đấu?

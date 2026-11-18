@@ -6,7 +6,7 @@
 [![Code Style](https://img.shields.io/badge/Code%20Style-Ruff%20%7C%20PEP%208-000000.svg)](./pyproject.toml)
 [![Academic Integrity](https://img.shields.io/badge/Integrity-Zero%20Fabrication-informational.svg)](#7-minh-bach-hoc-thuat--ke-thua)
 
-> **Hệ thống mô phỏng, huấn luyện, đánh giá đối kháng công bằng và trình diễn Rich CLI cho bài toán Game AI 7 cấp độ trên trò chơi Extended Tic-Tac-Toe tổng quát `M×N, K` (chuẩn thực nghiệm chính `4×4, K=4`).**
+> **Hệ thống mô phỏng môi trường đối kháng, huấn luyện, giải đấu công bằng và trình diễn Rich CLI cho bài toán Game AI 7 cấp độ trên trò chơi Extended Tic-Tac-Toe tổng quát `M×N, K` (chuẩn thực nghiệm chính `4×4, K=4`).**
 
 ---
 
@@ -14,9 +14,9 @@
 
 1. [Tổng quan Dự án & Ba Câu hỏi Nghiên cứu (`RQ1, RQ2, RQ3`)](#1-tong-quan-du-an--ba-cau-hoi-nghien-cuu-rq1-rq2-rq3)
 2. [Kiến trúc Hệ thống & 7 Cấp độ Tác tử AI](#2-kien-truc-he-thong--7-cap-do-tac-tu-ai)
-3. [Cấu trúc Thư mục Dự án](#3-cau-truc-thu-muc-du-an)
+3. [Bộ Tài liệu Sổ tay (`Planning/`) & Cấu trúc Thư mục Dự án](#3-bo-tai-lieu-so-tay-planning--cau-truc-thu-muc-du-an)
 4. [Hướng dẫn Cài đặt & Khởi tạo Môi trường (Quick Start)](#4-huong-dan-cai-dat--khoi-tao-moi-truong-quick-start)
-5. [Hướng dẫn Tái lập Thực nghiệm 1 Lệnh (One-Command Reproducibility)](#5-huong-dan-tai-lap-thuc-nghiem-1-lenh)
+5. [Hướng dẫn Tái lập Thực nghiệm 1 Lệnh](#5-huong-dan-tai-lap-thuc-nghiem-1-lenh)
 6. [Hướng dẫn Trải nghiệm Trực quan (`Rich CLI` Dashboard)](#6-huong-dan-trai-nghiem-truc-quan-rich-cli-dashboard)
 7. [Minh bạch Học thuật & Kế thừa (`References/`)](#7-minh-bach-hoc-thuat--ke-thua)
 8. [Bảng Tự Đánh giá Ánh xạ Rubric (100 Điểm + 10 Điểm Khuyến khích)](#8-bang-tu-danh-gia-anh-xa-rubric-100-diem--10-diem-khuyen-khich)
@@ -25,7 +25,7 @@
 
 ## 1. Tổng quan Dự án & Ba Câu hỏi Nghiên cứu (`RQ1, RQ2, RQ3`)
 
-Trên bàn cờ `3×3` cổ điển ($3^9 = 19,683$ cấu hình), các thuật toán tìm kiếm cạn kiệt hoặc luật heuristic mạnh dễ nhanh chóng kéo ván đấu về trạng thái hòa hoàn toàn, làm mờ ranh giới khác biệt giữa tìm kiếm cây, mạng học sâu và học tăng cường. Dự án thiết kế bộ Engine **Extended Tic-Tac-Toe (`M×N, K`)** tổng quát (trò chơi đối kháng 2 người, quan sát đầy đủ, tất định, tổng bằng không `zero-sum`) và chọn **`4×4, K=4`** ($3^{16} \approx 4.3 \times 10^7$ cấu hình) làm **chuẩn thực nghiệm chính**, kèm các cấu hình đối chứng **`4×4, K=3`**, **`3×3, K=3`**, và **`5×5, K=4`**.
+Trên bàn cờ `3×3` cổ điển ($3^9 = 19,683$ cấu hình), các thuật toán tìm kiếm toàn cây hoặc bộ luật heuristic chuẩn dễ kéo ván đấu về thế hòa, làm mờ ranh giới khác biệt giữa tìm kiếm cây, mạng học sâu và học tăng cường. Dự án xây dựng bộ Engine **Extended Tic-Tac-Toe (`M×N, K`)** tổng quát (trò chơi đối kháng 2 người, quan sát đầy đủ, tất định, tổng bằng không `zero-sum`) và chọn **`4×4, K=4`** ($3^{16} \approx 4.3 \times 10^7$ cấu hình) làm **chuẩn thực nghiệm chính**, cùng các cấu hình đối chứng **`4×4, K=3`**, **`3×3, K=3`**, và **`5×5, K=4`**.
 
 Thay vì chỉ xếp hạng thắng/thua đơn thuần, hệ thống thu thập **16,800 ván giải đấu chính thức** (4 giải `Paired Round-Robin`, cân bằng 50% `X` / 50% `O`) và **8,756 ván thực nghiệm Ablation** (cùng **84 ván** smoke kiểm chứng `T4.1`) để trả lời có căn cứ thống kê **3 câu hỏi nghiên cứu (RQ1–RQ3)**:
 
@@ -33,16 +33,16 @@ Thay vì chỉ xếp hạng thắng/thua đơn thuần, hệ thống thu thập 
 |---|---|---|
 | **RQ1** | **Hybrid MCTS (AlphaGo-inspired) so với Pure MCTS (UCT) & Policy-only** | Tại ngân sách mô phỏng thấp (`50 sims` trên `4×4, K=4`), `HybridRollout_sim50` (`0.583 [0.542, 0.625]`, chỉ `5` thua) và `HybridMixed_sim50` (`0.575 [0.533, 0.621]`, độ sâu `6.46`) vượt trội cả `PureMCTS_sim50` (`0.529 [0.471, 0.588]`, `22` thua, độ sâu `2.42`) lẫn `Policy_Strong` không tìm kiếm (`0.525`). Ở giới hạn thời gian CPU chặt (`10 ms` / `50 ms`), chi phí forward PyTorch làm giảm thông lượng mô phỏng (`145.9` vs `190.7 sims` ở `10 ms`), nhưng bộ đệm **LRU Cache theo hash bàn cờ** đạt tỷ lệ trúng **`60.7%–69.0%`**. Trên `3×3, K=3` (`default`), `L7_HybridMCTS` dẫn đầu toàn giải (`0.637 [0.624, 0.650]`, `328-872-0`, `0` thua). |
 | **RQ2** | **Lợi thế người đi trước ($\Delta\text{Score} = \text{Score}_X - \text{Score}_O$) theo luật thắng `K` & cấp AI** | Khi nới bàn cờ thành `4×4` nhưng giữ `K=3`, lợi thế đi trước bùng nổ với `X Win = 76.5%`, `Draw = 0.0%`, $\Delta\text{Score} = +0.530\;[+0.445, +0.610]$ (`RuleBased`, `AlphaBeta`, `DQN` đạt `1.000` khi đi `X`). Tăng chuỗi thắng lên `4×4, K=4` mở rộng không gian phòng thủ, đẩy tỷ lệ hòa lên `74.1%` (`71.1%–73.3%` trong các giải `4,200` ván) và kéo $\Delta\text{Score}$ về gần cân bằng $+0.024\;[-0.011, +0.058]$ (so với $+0.112\;[+0.073, +0.152]$ trên `3×3, K=3`). |
-| **RQ3** | **Độ ổn định đa seed & Tổng quát hóa: RL Self-Play vs Supervised Learning** | Khi gặp các đối thủ cây tìm kiếm chưa từng xuất hiện lúc huấn luyện (*Unseen Opponents*: `MCTS`, `AlphaBeta`), tác tử RL (`DQNAgent` với Mixed Pool 70% Self-Play / 30% Baseline trên `4×4, K=4`, `3 seeds {42, 123, 999}`) đạt **`0.586 ± 0.027`** tổng thể và **`0.554 ± 0.016`** trước Unseen `MCTS` (chỉ `2–3` thua / 360 ván). Ngược lại, `SL_StrongPolicy` giảm xuống **`0.497`** (`0.344` trước `MCTS`, `30` thua) và `SL_ValueGreedy` tụt xuống **`0.307`** (`0.256` trước `MCTS`). Trên `3×3, K=3`, `TabularQ` 3 seed đạt **`0.659 ± 0.005`** (`0.619 ± 0.023` trước `MCTS`) so với `0.469–0.485` của nhóm Supervised. |
+| **RQ3** | **Độ ổn định đa seed & Tổng quát hóa: RL Self-Play vs Supervised Learning** | Khi gặp các đối thủ cây tìm kiếm chưa từng xuất hiện lúc huấn luyện (*Unseen Opponents*: `MCTS`, `AlphaBeta`), tác tử RL (`DQNAgent` với Mixed Pool 70% Self-Play / 30% Baseline trên `4×4, K=4`, `3 seeds {42, 123, 999}`) đạt **`0.586 ± 0.027`** tổng thể (`2–3` thua / 360 ván) và **`0.554 ± 0.016`** trước Unseen `MCTS`. Ngược lại, `SL_StrongPolicy` giảm xuống **`0.497`** (`30` thua tổng thể, `0.344` trước `MCTS`) và `SL_ValueGreedy` tụt xuống **`0.307`** (`0.256` trước `MCTS`). Trên `3×3, K=3`, `TabularQ` 3 seed đạt **`0.659 ± 0.005`** (`0.619 ± 0.023` trước `MCTS`, `0–1` thua / 360 ván) so với `0.469–0.485` của nhóm Supervised. |
 
 ---
 
 ## 2. Kiến trúc Hệ thống & 7 Cấp độ Tác tử AI
 
-Hệ thống áp dụng kiến trúc phân tầng lỏng (*loosely coupled architecture*) chia thành 5 gói độc lập: `engine`, `agents`, `training`, `benchmark`, và `ui`.
+Hệ thống áp dụng kiến trúc phân lớp lỏng (*loosely coupled architecture*) chia thành 5 phân hệ độc lập: `engine`, `agents`, `training`, `benchmark`, và `ui` (chi tiết sơ đồ và giao ước xem tại [Planning/ARCHITECTURE.md](./Planning/ARCHITECTURE.md)).
 
-- **Hợp đồng Game API nghiêm ngặt (`ExtendedTicTacToe`):** Mọi tác tử AI chỉ được phép tương tác thông qua 7+ phương thức công khai: `reset()`, `legal_actions()`, `step(action)`, `is_terminal()`, `result(player)`, `render()`, `clone()`, và `undo()`. Tuyệt đối không truy cập biến nội bộ `_board`/`_history` (được kiểm tra tự động bằng AST tests trong `tests/`).
-- **Chống rò rỉ & Chống dùng trọng số chưa train:** Dữ liệu Supervised chia `train / val / test = 70% / 15% / 15%` theo **`game_id`**; mọi checkpoint `.pt`/`.pkl` đều đi kèm file metadata `*.meta.json` chứa hash SHA-256 và `board_config` để kiểm chứng hợp lệ khi nạp.
+- **Giao diện Game API thống nhất (`ExtendedTicTacToe`):** Mọi tác tử AI chỉ tương tác với trò chơi thông qua các phương thức công khai: `reset()`, `legal_actions()`, `step(action)`, `is_terminal()`, `result(player)`, `render()`, `clone()`, và `undo()`, tách biệt khỏi biến nội bộ `_board`/`_history` (được kiểm tra tự động bằng AST tests trong `tests/`).
+- **Chống rò rỉ dữ liệu & xác minh checkpoint:** Dữ liệu Supervised chia `train / val / test = 70% / 15% / 15%` theo **`game_id`**; mọi checkpoint `.pt`/`.pkl` đi kèm file `*.meta.json` lưu hash SHA-256 và `board_config` để kiểm chứng hợp lệ trước khi suy luận.
 
 ### Hệ thống 7 Cấp độ Tác tử AI
 
@@ -56,22 +56,36 @@ Hệ thống áp dụng kiến trúc phân tầng lỏng (*loosely coupled archi
 | **6** | `TabularQAgent` / `DQNAgent` | **`TabularQAgent`** (canonical byte keys cho `3×3 K=3`) và **`DQNAgent`** (`Double DQN` + Experience Replay `50,000` + Target Network + Mixed Pool 70% Self-Play / 30% Baseline trên `4×4`), huấn luyện đa seed `42, 123, 999`. | Giá trị `Q(s, a)` dự đoán |
 | **7** | `HybridMCTSAgent` *(AlphaGo-inspired)* | Kết hợp cây tìm kiếm **PUCT** với prior $P(s, a)$ từ `StrongPolicyNet`, **LRU Cache theo canonical hash**, và 2 chế độ đánh giá nút lá (`rollout` hoặc `mixed` $\lambda V_\theta(s) + (1-\lambda)z_{\text{rollout}}$). Phát đồng thời cả `prior_probs` lẫn `action_scores`. | Đồng thời `Prior P(s,a)` & `Visit Share N(s,a)/N(s)` |
 
-> **Minh bạch phạm vi Cấp 7:** `HybridMCTSAgent` được định vị là mô hình **AlphaGo-inspired** (Supervised `PolicyNet` + `ValueNet` kết hợp cây PUCT trên CPU), **không** tuyên bố tái hiện kiến trúc phân tán đa GPU/TPU hay vòng lặp tự học ResNet hoàn chỉnh của AlphaZero nguyên bản.
+> **Minh bạch phạm vi Cấp 7:** `HybridMCTSAgent` được định vị là mô hình **AlphaGo-inspired** (Supervised `PolicyNet` + `ValueNet` kết hợp cây PUCT trên CPU), không tái hiện kiến trúc phân tán đa GPU/TPU hay vòng lặp tự học ResNet hoàn chỉnh của AlphaZero nguyên bản.
 
 ---
 
-## 3. Cấu trúc Thư mục Dự án
+## 3. Bộ Tài liệu Sổ tay (`Planning/`) & Cấu trúc Thư mục Dự án
+
+### Lộ trình đọc bộ tài liệu `Planning/` (`01 → 06`)
+Bộ 6 tài liệu trong `Planning/` được biên soạn theo cấu trúc sổ tay kỹ thuật để tự định hướng và rà soát xuyên suốt quá trình phát triển và thực nghiệm. Để nắm mạch thiết kế từ ý tưởng đến kết quả, có thể đọc theo thứ tự:
+
+| Thứ tự | Tài liệu | Nội dung chính |
+|---|---|---|
+| **01** | [PRD.md](./Planning/PRD.md) | Mục tiêu đề tài, 3 câu hỏi nghiên cứu (`RQ1–RQ3`), mô hình MDP `M×N, K`, 7 cấp AI & Rubric |
+| **02** | [ARCHITECTURE.md](./Planning/ARCHITECTURE.md) | Kiến trúc phân lớp 5 phân hệ, sơ đồ luồng, Game API, chi tiết thuật toán & cấu trúc repo |
+| **03** | [DESIGN.md](./Planning/DESIGN.md) | Thiết kế `Rich CLI` Dashboard, thang nhiệt và quy chuẩn 5 biểu đồ (`Fig 1..5`) |
+| **04** | [RULES.md](./Planning/RULES.md) | Nguyên tắc trung thực học thuật cốt lõi, quy ước viết mã PEP 8 và chuẩn đo lường |
+| **05** | [TASKS.md](./Planning/TASKS.md) | Kế hoạch phân rã 5 Sprint (`T1.1`–`T5.3`) và tiêu chí tự kiểm chứng từng giai đoạn |
+| **06** | [PROGRESS.md](./Planning/PROGRESS.md) | Nhật ký thực nghiệm (`25,640` ván logged), bảng số liệu chính thức & lịch sử gỡ lỗi (`BUG-01..04`) |
+
+### Cấu trúc Thư mục Dự án
 
 ```text
 Extended_Tic-Tac-Toe_Project/
-├── Planning/                   # Bộ 6 tài liệu thiết kế, quy chuẩn & nhật ký tiến độ
-│   ├── PRD.md                  # Đặc tả 3 RQ, MDP, 7 cấp AI & Rubric 100+10đ
-│   ├── RULES.md                # Chuẩn PEP 8, Zero Fabrication & Hợp đồng Game API
-│   ├── ARCHITECTURE.md         # Kiến trúc phân lớp, schema JSONL & checkpoint metadata
-│   ├── DESIGN.md               # Thiết kế Rich CLI Dashboard & Fig 1..5
-│   ├── TASKS.md                # Phân rã công việc Sprint 1..5
-│   └── PROGRESS.md             # Nhật ký kiểm chứng, Bug Log (BUG-01..04) & Experiment Registry
-├── References/                 # Đề cương, slide, sách Mark Liu (2024) & kho mã đối chiếu (chỉ đọc)
+├── Planning/                         # Bộ 6 sổ tay thiết kế, quy chuẩn & nhật ký (01 -> 06)
+│   ├── PRD.md                        # 01. Định hướng đề tài, 3 RQ (RQ1–RQ3), MDP & Rubric
+│   ├── ARCHITECTURE.md               # 02. Sổ tay kiến trúc hệ thống, schemas & thuật toán
+│   ├── DESIGN.md                     # 03. Thiết kế giao diện Rich CLI & Fig 1..5
+│   ├── RULES.md                      # 04. Nguyên tắc trung thực học thuật & quy ước kỹ thuật
+│   ├── TASKS.md                      # 05. Kế hoạch triển khai 5 Sprint (T1.1–T5.3)
+│   └── PROGRESS.md                   # 06. Nhật ký thực nghiệm, Bug Log (BUG-01..04) & Registry
+├── References/                       # Đề cương, slide, sách & kho mã tham khảo (chỉ đọc)
 │   ├── TTNTNC_De_tai_cuoi_ky_Game_AI.pdf
 │   ├── Tic tac toe Game.pdf
 │   ├── 2024 - Liu - AlphaGo Simplified Rule-Based AI and Deep Learning in Everyday Games.pdf
@@ -79,29 +93,30 @@ Extended_Tic-Tac-Toe_Project/
 │   ├── SuttonBartoIPRLBook2ndEd.pdf
 │   ├── AlphaGoSimplified-main/
 │   └── Reversi-mcts-master/
-├── configs/                    # Cấu hình YAML tập trung (Zero Magic Numbers)
+├── configs/                          # 7 tệp cấu hình YAML tập trung
 │   ├── game_{3x3_k3,4x4_k3,4x4_k4,5x5_k4}.yaml
 │   ├── train_supervised.yaml
 │   ├── train_rl.yaml
 │   └── tournament.yaml
-├── src/ttt_ai/                 # Gói thư viện lõi (editable package)
-│   ├── config.py               # Typed Dataclasses, YAML loader & seed_everything()
-│   ├── engine/                 # rules.py, exceptions.py, game.py (ExtendedTicTacToe)
-│   ├── agents/                 # base.py + 7 cấp AI (nn_models.py, hybrid_mcts_agent.py, ...)
-│   ├── training/               # dataset_gen.py, train_supervised.py, train_q_tabular.py, train_dqn_selfplay.py, checkpoint_io.py
-│   ├── benchmark/              # tournament.py, metrics.py, ablations.py, visualizer.py
-│   └── ui/                     # theme.py, cli_app.py (InteractiveCLIApp + Setup Wizard + Heatmap)
-├── scripts/                    # 6 CLI entrypoints tái lập thực nghiệm & demo
+├── src/ttt_ai/                       # Gói thư viện lõi (editable package)
+│   ├── config.py                     # Typed Dataclasses, YAML loader & seed_everything()
+│   ├── engine/                       # exceptions.py, rules.py, game.py (ExtendedTicTacToe)
+│   ├── agents/                       # base.py + 7 cấp AI (nn_models.py, hybrid_mcts_agent.py, ...)
+│   ├── training/                     # dataset_gen.py, train_supervised.py, train_q_tabular.py, train_dqn_selfplay.py, checkpoint_io.py
+│   ├── benchmark/                    # tournament.py, metrics.py, ablations.py, visualizer.py
+│   └── ui/                           # theme.py, cli_app.py (InteractiveCLIApp + Setup Wizard + Heatmap)
+├── scripts/                          # 6 CLI entrypoints tái lập thực nghiệm & demo
 │   ├── generate_dataset.py
 │   ├── train_all.py
 │   ├── run_tournament.py
 │   ├── run_ablations.py
 │   ├── plot_results.py
 │   └── play.py
-├── tests/                      # 18 module kiểm thử tự động (347 test cases pass 100%)
-├── checkpoints/                # 15 trọng số đã huấn luyện (.pt/.pkl) + 15 file *.meta.json
-├── logs/                       # Raw JSONL logs: giải đấu (16,884 ván), ablations (8,756 ván), train curves & datasets
-├── reports/                    # Biểu đồ 300 DPI (figures/fig1..5*.png) + CSV/MD reports
+├── tests/                            # conftest.py + 18 module kiểm thử tự động (347 test cases pass 100%)
+├── checkpoints/                      # 15 cặp trọng số đã huấn luyện (.pt/.pkl) + *.meta.json
+├── logs/                             # datasets (.npz), 4 giải đấu (16,800 ván), smoke (84 ván), 4 ablations (8,756 ván), 15 train logs
+├── reports/                          # figures/fig1..5*.png (300 DPI) + CSV/MD tổng hợp & sample_failure_cases.md
+├── terminal_test/                    # Ảnh chụp terminal kiểm chứng demo_play/ & sprint_test/
 ├── pyproject.toml
 └── README.md
 ```
@@ -159,7 +174,7 @@ ruff check src/ tests/ scripts/
 ```
 
 ### 5.2. Sinh dữ liệu Chuyên gia & Huấn luyện Cấp 5 (Supervised Learning)
-Dữ liệu được sinh từ `AlphaBetaAgent` kết hợp `RuleBasedAgent` (có nhiễu mở đầu) và chia `70% / 15% / 15%` theo **`game_id`** để chống rò rỉ dữ liệu:
+Dữ liệu được sinh từ `AlphaBetaAgent` kết hợp `RuleBasedAgent` (có nhiễu mở đầu) và chia `70% / 15% / 15%` theo **`game_id`** để tránh rò rỉ dữ liệu:
 ```bash
 # Sinh toàn bộ dataset (4x4_k4 & 3x3_k3) VÀ huấn luyện đủ FastPolicyNet, StrongPolicyNet, ValueNet
 python scripts/generate_dataset.py --board all --train
@@ -201,7 +216,7 @@ python scripts/run_ablations.py --ablation 2 --mode smoke --seed 42
 ```
 
 ### 5.6. Kết xuất Tự động Biểu đồ (`Fig 1..5`, 300 DPI) & Báo cáo Thực nghiệm
-Đọc trực tiếp từ raw `logs/*.jsonl` (tuyệt đối không hardcode số liệu) để xuất toàn bộ 5 hình PNG `300 DPI` và 3 file báo cáo định lượng (`reports/summary_metrics.csv`, `reports/summary_tables.md`, `reports/sample_failure_cases.md`):
+Đọc trực tiếp từ raw `logs/*.jsonl` (không chỉnh sửa tay số liệu) để xuất toàn bộ 5 hình PNG `300 DPI` và 3 file báo cáo định lượng (`reports/summary_metrics.csv`, `reports/summary_tables.md`, `reports/sample_failure_cases.md`):
 ```bash
 # Xuất đồng thời cả 5 biểu đồ (300 DPI) và toàn bộ bảng báo cáo / sample failure cases
 python scripts/plot_results.py --figures all --dpi 300
@@ -241,30 +256,30 @@ python scripts/play.py --board 4x4_k4 --mode ai_vs_ai --agent-x 7 --agent-o 4 --
 python scripts/play.py --board 4x4_k4 --mode human_vs_ai --difficulty hard --ascii
 ```
 
-> Lưu ý: Mức `--difficulty easy / medium / hard` hoặc số cấp `1..7` đều được hỗ trợ. Riêng Cấp 5, 6, 7 chỉ khả dụng khi checkpoint đã huấn luyện và file `*.meta.json` tương ứng tồn tại hợp lệ trong `checkpoints/` (ngăn chặn chạy mô hình chưa train).
+> Lưu ý: Mức `--difficulty easy / medium / hard` hoặc số cấp `1..7` đều được hỗ trợ. Riêng Cấp 5, 6, 7 chỉ khả dụng khi checkpoint đã huấn luyện và file `*.meta.json` tương ứng tồn tại hợp lệ trong `checkpoints/` (tránh chạy mô hình chưa huấn luyện).
 
 ### Cách đọc Dashboard & Thao tác trong trận
 
-Giao diện Live Match Dashboard chia làm **2 cột cố định (Trái 48% / Phải 52%)** theo [DESIGN.md](./Planning/DESIGN.md):
+Giao diện Live Match Dashboard chia làm **2 cột cố định (Trái 48% / Phải 52%)** theo [Planning/DESIGN.md](./Planning/DESIGN.md):
 - **Cột trái — Game Board:**
   - Quân **`X`** tô màu **Bright Cyan**, quân **`O`** tô màu **Bright Red**.
   - Nước vừa đánh được đánh dấu bằng ngoặc vuông **`[ ]`** trên nền xám nổi bật; khi kết thúc ván thắng, toàn bộ **`K` ô đường thắng** được tô nền **Bright Green**.
 - **Cột phải — AI Telemetry & Action Heatmap:**
   - **AI Telemetry:** Hiển thị nước chọn, độ trễ suy nghĩ (`ms`, tự đổi màu theo tỷ lệ dùng ngân sách), số `Nodes Visited` / `Simulations`, `Depth Reached`, và `Value Estimate`.
-  - **Action Heatmap 5 mức màu & Bảng Top-5 Moves:** Chuyển đổi `action_scores` thành thang nhiệt trực quan (`Bright Yellow` Top-1 $\rightarrow$ `Green` $\rightarrow$ `Yellow` $\rightarrow$ `Dim White`). Riêng với **Cấp 7 (`HybridMCTS`)**, bảng Top-5 hiển thị **song song** cả xác suất tiên nghiệm **`Prior P(s,a)`** (gợi ý ban đầu của mạng Policy) và **`Visit Share N(s,a)/N(s)`** (phân phối sau khi cây PUCT rà soát), minh họa trực tiếp cách tìm kiếm cây sửa sai hoặc củng cố gợi ý mạng nơ-ron (**RQ1**).
+  - **Action Heatmap 5 mức màu & Bảng Top-5 Moves:** Chuyển đổi `action_scores` thành thang nhiệt trực quan (`Bright Yellow` Top-1 $\rightarrow$ `Green` $\rightarrow$ `Yellow` $\rightarrow$ `Dim White`). Riêng với **Cấp 7 (`HybridMCTS`)**, bảng Top-5 hiển thị **song song** cả xác suất tiên nghiệm **`Prior P(s,a)`** (gợi ý ban đầu của mạng Policy) và **`Visit Share N(s,a)/N(s)`** (phân phối sau khi cây PUCT rà soát), minh họa trực tiếp cách tìm kiếm cây điều chỉnh hoặc củng cố gợi ý mạng nơ-ron (**RQ1**).
 - **Footer & Lệnh điều khiển (khi chơi có Người):**
   - Nhập nước đi dạng tọa độ **`r,c`** (ví dụ `1,2`), **`r c`**, hoặc **chỉ số ô `0..MN-1`** (ví dụ `6`).
-  - Lệnh hỗ trợ: **`u`** / **`undo`** (hoàn tác 2 lượt để người chơi thử lại thế cờ), **`h`** / **`help`** (xem hướng dẫn), **`q`** / **`quit`** (thoát ván mượt mà). Nhập sai hoặc chọn ô đã đánh sẽ hiển thị cảnh báo vàng, **tuyệt đối không crash chương trình**.
+  - Lệnh hỗ trợ: **`u`** / **`undo`** (hoàn tác 2 lượt để thử lại thế cờ), **`h`** / **`help`** (xem hướng dẫn), **`q`** / **`quit`** (thoát ván mượt mà). Nhập sai hoặc chọn ô đã đánh sẽ hiển thị cảnh báo vàng ngay trên Footer mà không làm gián đoạn ván đấu.
 
 ---
 
 ## 7. Minh bạch Học thuật & Kế thừa
 
-Tuân thủ nguyên tắc trung thực học thuật tại [Planning/RULES.md](./Planning/RULES.md), nhóm tác giả phân định rõ ràng ranh giới giữa **phần tự thiết kế/cài đặt 100%** và **phần kế thừa/tham khảo khái niệm** từ thư mục `References/`:
+Tuân thủ nguyên tắc minh bạch học thuật tại [Planning/RULES.md](./Planning/RULES.md), dự án phân định rõ ràng ranh giới giữa **phần tự thiết kế/cài đặt 100%** và **phần kế thừa/tham khảo khái niệm** từ thư mục `References/`:
 
-| Nguồn trong `References/` | Phần Kế thừa / Tham khảo Khái niệm (*Adapted / Inspired*) | Phần Nhóm Tự Thiết kế & Cài đặt Mới 100% (*Original Contribution*) |
+| Nguồn trong `References/` | Phần Kế thừa / Tham khảo Khái niệm (*Adapted / Inspired*) | Phần Tự Thiết kế & Cài đặt Mới 100% (*Original Contribution*) |
 |---|---|---|
-| **`TTNTNC_De_tai_cuoi_ky_Game_AI.pdf`** *(Đề cương môn học)* | Khung yêu cầu 7–8 cấp AI, 7 phương thức chuẩn của Game API (`reset`, `legal_actions`, `step`, `is_terminal`, `result`, `render`, `clone`), thể thức Paired Round-Robin, đo `p95_ms`, Fixed Compute Budget vs Default, và các hạng mục Rubric. | Chọn bài toán `Extended Tic-Tac-Toe (M×N, K)` với chuẩn `4×4 K=4`; phát biểu và thiết kế bộ 4 thí nghiệm ablation trả lời **RQ1, RQ2, RQ3**; cài đặt trọn vẹn codebase `src/ttt_ai/`, 18 file test (`347` cases) và Rich CLI Dashboard. |
+| **`TTNTNC_De_tai_cuoi_ky_Game_AI.pdf`** *(Đề cương môn học)* | Khung yêu cầu 7–8 cấp AI, 7 phương thức chuẩn của Game API (`reset`, `legal_actions`, `step`, `is_terminal`, `result`, `render`, `clone`), thể thức Paired Round-Robin, đo `p95_ms`, Fixed Compute Budget vs Default, và các hạng mục Rubric. | Chọn bài toán `Extended Tic-Tac-Toe (M×N, K)` với chuẩn `4×4 K=4`; phát biểu và thiết kế bộ 4 thí nghiệm ablation trả lời **RQ1, RQ2, RQ3**; cài đặt trọn vẹn codebase `src/ttt_ai/`, 18 module test (`347` cases) và Rich CLI Dashboard. |
 | **`Tic tac toe Game.pdf`** *(Slide thiết kế)* | Kiến trúc mạng đối chứng `FastPolicyNet` (2 lớp `64`), `StrongPolicyNet` (`128` conv + 3 lớp `64`, slide 44–48), `ValueNet` (`Tanh`, slide 61–62), biểu diễn bàn cờ chuẩn hóa góc nhìn người chơi hiện tại (`canonical_board`, slide 38), bảng luật Newell & Simon và Tabular Q trên `3×3` (slide 56). | Tổng quát hóa từ `3×3` sang **`M×N, K`** với PyTorch `(B, 1, M, N)` (`padding=1`), cơ chế **Action Masking (`-1e9`)** dùng chung, bộ luật `RuleBasedAgent` 6 tầng phân giải xung đột tổng quát, **Iterative Deepening** ngắt theo thời gian thực (`time.perf_counter()`), lọc trùng & tách dữ liệu **theo `game_id`**, **Double-DQN Self-Play + Mixed Pool** cho `4×4`, và **`HybridMCTSAgent`** kèm LRU Prior Cache. |
 | **`2024 - Liu - AlphaGo Simplified...pdf`** & **`AlphaGoSimplified-main/`** *(Mark Liu, 2024 — chỉ đọc đối chiếu)* | Lộ trình tiến hóa thuật toán từ Rule-Based $\rightarrow$ Minimax/Alpha-Beta $\rightarrow$ MCTS UCT $\rightarrow$ Deep Policy/Value Network $\rightarrow$ RL $\rightarrow$ mô hình lai AlphaGo-inspired. | **Viết mới 100% bằng PyTorch & Python hiện đại** (không sao chép mã TensorFlow/Keras từ notebook gốc); xây dựng giao ước `BaseAgent`/`AgentDecision`, bộ kiểm tra metadata/SHA-256 chống nạp sai hoặc chưa train (`checkpoint_io.py`), và bộ thống kê Wilson / Bootstrap CI (`metrics.py`). |
 | **`Reversi-mcts-master/`** *(Kho mã tham khảo C# — chỉ đọc đối chiếu)* | Tham khảo cấu trúc 4 pha Selection – Expansion – Simulation – Backpropagation của MCTS UCT và quản lý thống kê nút cây. | Cài đặt thuần Python/NumPy tối ưu bộ nhớ (`_MCTSNode` & `_PUCTNode` dùng `__slots__`, giải phóng cây sau nước đi), cơ chế giới hạn song song theo `n_simulations` lẫn `time_budget_ms`, và mở rộng thành cây **PUCT lai Policy/Value**. |
@@ -279,12 +294,12 @@ Tuân thủ nguyên tắc trung thực học thuật tại [Planning/RULES.md](.
 | STT | Tiêu chí Rubric | Điểm tối đa | Minh chứng Cụ thể trong Repository | Trạng thái |
 |---|---|---:|---|---|
 | **1** | **Xác định bài toán / game** | **10** | Định nghĩa MDP & luật tổng quát `M×N, K` trong [PRD.md](./Planning/PRD.md); 3 câu hỏi nghiên cứu **RQ1–RQ3**; bộ kiểm thử Engine & Luật chơi [test_engine.py](./tests/test_engine.py), [test_rules.py](./tests/test_rules.py), [test_config.py](./tests/test_config.py) pass 100%. | Đạt chuẩn |
-| **2** | **Xây dựng hệ thống** | **15** | Kiến trúc phân lớp 5 gói (`engine`, `agents`, `training`, `benchmark`, `ui`) trong [src/ttt_ai/](./src/ttt_ai/); 7+ Public Game APIs (`step` kiểm tra chặt `IllegalMoveError`, `clone()` độc lập, `undo()` $O(1)$); AST test cấm bare `print()` & truy cập private attrs; giao diện Rich CLI [cli_app.py](./src/ttt_ai/ui/cli_app.py) (`32` CLI tests pass). | Đạt chuẩn |
+| **2** | **Xây dựng hệ thống** | **15** | Kiến trúc phân lớp 5 phân hệ (`engine`, `agents`, `training`, `benchmark`, `ui`) trong [src/ttt_ai/](./src/ttt_ai/); 7+ Public Game APIs (`step` kiểm tra chặt `IllegalMoveError`, `clone()` độc lập, `undo()` $O(1)$); AST test phát hiện bare `print()` & truy cập private attrs; giao diện Rich CLI [cli_app.py](./src/ttt_ai/ui/cli_app.py) (`32` CLI tests pass). | Đạt chuẩn |
 | **3** | **Tác tử tìm kiếm (Cấp 1–4)** | **20** | Cấp 1 [`RandomAgent`](./src/ttt_ai/agents/random_agent.py), Cấp 2 [`RuleBasedAgent`](./src/ttt_ai/agents/rule_based_agent.py) (6 tầng ưu tiên rõ xung đột), Cấp 3 [`MinimaxAgent` / `AlphaBetaAgent`](./src/ttt_ai/agents/minimax_agent.py) (so sánh bật/tắt cắt tỉa & move ordering giảm `-94.71%` nút ở `d=4`), Cấp 4 [`MCTSAgent`](./src/ttt_ai/agents/mcts_agent.py) (4 pha UCT). Kiểm chứng qua `test_level1_level2_agents.py`, `test_minimax_agent.py`, `test_mcts_agent.py`, `test_search_agents.py`, `test_agents_contract.py`. | Đạt chuẩn |
 | **4** | **Tác tử học được (Cấp 5–7)** | **15** | **15 checkpoints** đã huấn luyện thực tế + `.meta.json` trong [`checkpoints/`](./checkpoints/): `Fast/StrongPolicyNet` & `ValueNet` (`3×3`, `4×4`, tách tập theo `game_id`), `TabularQAgent` (`3×3` x 3 seeds), `DQNAgent` Self-Play (`4×4 K=4`, `4×4 K=3` x 3 seeds), và `HybridMCTSAgent` (PUCT + LRU cache + `rollout`/`mixed`). Kèm raw learning curves `logs/train_*.jsonl`. | Đạt chuẩn |
 | **5** | **Thiết kế đánh giá** | **15** | Giải đấu **Paired Round-Robin** ([tournament.py](./src/ttt_ai/benchmark/tournament.py)): **200 ván/cặp** (`100` đi `X` + `100` đi `O`), **4 giải chính thức = 16,800 ván** ở cả *Default* và *Fixed Budget (`10 ms`, `50 ms`)* + đối chứng `3×3 K=3`, `0` `IllegalMoveError`. Kèm **4 kịch bản Ablation (`8,756` ván)** trong [ablations.py](./src/ttt_ai/benchmark/ablations.py). | Đạt chuẩn |
 | **6** | **Kết quả & thảo luận** | **10** | Tự động tính Wilson/Bootstrap 95% CI, $\Delta\text{Score}$, `mean_ms`, `p95_ms`, `avg_nodes/sims` trong [metrics.py](./src/ttt_ai/benchmark/metrics.py); tổng hợp đủ trong [summary_tables.md](./reports/summary_tables.md), [tournament_suite_summary.md](./reports/tournament_suite_summary.md), [ablation_summary.md](./reports/ablation_summary.md), và phân tích ván lỗi thực tế [sample_failure_cases.md](./reports/sample_failure_cases.md). | Đạt chuẩn |
-| **7** | **Báo cáo, slide, demo** | **10** | Pipeline [visualizer.py](./src/ttt_ai/benchmark/visualizer.py) + [plot_results.py](./scripts/plot_results.py) xuất tự động **Fig 1..5** (`300 DPI` PNG, không đè nhãn) trong [`reports/figures/`](./reports/figures/); Demo Rich CLI [play.py](./scripts/play.py) chạy mượt cả `Human vs AI` và `AI vs AI`; đầy đủ tài liệu `Planning/`. | Đạt chuẩn |
-| **8** | **Tái lập & đạo đức** | **5** | `ruff check src/ tests/ scripts/` sạch PEP 8; **347/347 `pytest`** pass; quản lý seed đồng bộ; lưu toàn bộ raw logs `.jsonl` kèm metadata phần cứng; minh bạch đối chiếu `References/` trong README & docstrings; tuân thủ tuyệt đối *Zero Fabrication*. | Đạt chuẩn |
+| **7** | **Báo cáo, slide, demo** | **10** | Pipeline [visualizer.py](./src/ttt_ai/benchmark/visualizer.py) + [plot_results.py](./scripts/plot_results.py) xuất tự động **Fig 1..5** (`300 DPI` PNG, không đè nhãn) trong [`reports/figures/`](./reports/figures/); Demo Rich CLI [play.py](./scripts/play.py) chạy mượt cả `Human vs AI` và `AI vs AI` (ảnh kiểm chứng trong [`terminal_test/`](./terminal_test/)); đầy đủ bộ 6 tài liệu `Planning/`. | Đạt chuẩn |
+| **8** | **Tái lập & đạo đức** | **5** | `ruff check src/ tests/ scripts/` sạch PEP 8; **347/347 `pytest`** pass; quản lý seed đồng bộ; lưu toàn bộ raw logs `.jsonl` kèm metadata phần cứng; minh bạch đối chiếu `References/` trong README & docstrings; dữ liệu báo cáo trích xuất nguyên gốc từ log thô (*Zero Fabrication*). | Đạt chuẩn |
 | **+** | **Điểm khuyến khích (Bonus)** | **+10** | Thực nghiệm đối chứng thuyết phục **Cấp 7 `HybridMCTS`** (`rollout` & `mixed` vs `Pure MCTS` vs `PolicyNet`, minh họa **RQ1**); kiểm thử đa cấu hình **`3×3 K=3`**, **`4×4 K=3`**, **`4×4 K=4`**, **`5×5 K=4`** ([game_5x5_k4.yaml](./configs/game_5x5_k4.yaml)); và **Real-time Explainability Heatmap** (hiển thị đồng thời `Prior` & `Visit Share` của Cấp 7) trên Rich CLI. | Sẵn sàng |
-| | **Tổng cộng** | **100 (+10)** | Toàn bộ 5/5 Sprint (`Phase 0` + `T1.1`–`T5.3`) đã hoàn thành & nghiệm thu. | **READY** |
+| | **Tổng cộng** | **100 (+10)** | Toàn bộ 5/5 Sprint (`Phase 0` + `T1.1`–`T5.3`) đã hoàn thành & kiểm chứng. | **READY** |

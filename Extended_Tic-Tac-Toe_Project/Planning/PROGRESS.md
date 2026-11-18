@@ -1,22 +1,24 @@
-# PROGRESS — Theo dõi Tiến độ, Thực nghiệm & Nhật ký Lỗi Kỹ thuật
+# 06. Nhật ký Thực nghiệm, Kết quả Kiểm chứng & Gỡ lỗi Kỹ thuật (`PROGRESS.md`)
 
-Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa Cấp Độ (Extended Tic-Tac-Toe `M×N, K`)**. Mọi trạng thái `DONE` đều phải đi kèm bằng chứng kiểm chứng (`pytest` output, đường dẫn checkpoint, hoặc raw log) theo đúng quy định trong [RULES.md](./RULES.md) và kế hoạch tại [TASKS.md](./TASKS.md).
-
+- **Vai trò tài liệu:** Nhật ký ghi nhận tiến độ hoàn thành 5 Sprint, kho số liệu thực nghiệm truy xuất từ log thô và lịch sử gỡ lỗi kỹ thuật (Tài liệu số `06` trong lộ trình [PRD.md](./PRD.md) `01 → 06`)
+- **Tài liệu liên quan:**
+  - Trước: [05. TASKS.md](./TASKS.md) — Kế hoạch phân rã công việc qua 5 Sprint
+  - Quy chuẩn áp dụng: [04. RULES.md](./RULES.md) — Nguyên tắc trung thực dữ liệu và chuẩn kiểm chứng
 - **Cập nhật lần cuối:** `2026-11-18`
-- **Trạng thái tổng thể:** **`COMPLETED / READY FOR SUBMISSION`** *(Nghiệm thu trọn vẹn `Phase 0` + **5 / 5 Sprints**, từ `T1.1` đến `T5.3`)*
+- **Trạng thái tổng thể:** **`COMPLETED / READY FOR SUBMISSION`** *(Hoàn tất trọn vẹn `Phase 0` + **5 / 5 Sprints**, từ `T1.1` đến `T5.3`)*
 
 ---
 
 ## 1. Tổng quan Trạng thái Dự án
 
-| Giai đoạn | Mô tả | Tiến độ | Trạng thái | Cổng nghiệm thu |
+| Giai đoạn | Mô tả | Tiến độ | Trạng thái | Bằng chứng kiểm chứng |
 |---|---|---|---|---|
-| **Phase 0** | Bộ 6 tài liệu Planning (`PRD`, `RULES`, `ARCHITECTURE`, `DESIGN`, `TASKS`, `PROGRESS`) | `6 / 6` | `DONE` | Đã duyệt & lưu đủ trong `Planning/` |
+| **Phase 0** | Bộ 6 tài liệu Planning (`PRD`, `RULES`, `ARCHITECTURE`, `DESIGN`, `TASKS`, `PROGRESS`) | `6 / 6` | `DONE` | Đã hoàn thiện & lưu đủ trong `Planning/` |
 | **Sprint 1** | Hạ tầng, Configs, Core `engine` & `test_engine.py` | `4 / 4` | `DONE` | `pytest tests/test_engine.py` pass 100% (`29 passed`); `ruff` sạch |
-| **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `5 / 5` | `DONE` | Nghiệm thu & đóng Sprint 2 (`45 passed` contract/search; full suite `216 passed`); `ruff` sạch |
-| **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `4 / 4` | `DONE` | Nghiệm thu & đóng Sprint 3: đủ checkpoints + `.meta.json` đa seed Cấp 5–6, `HybridMCTSAgent` (`rollout`/`mixed` + LRU cache), `test_hybrid_mcts_agent.py` & `test_agents_contract.py` (`33 passed`), full suite `263 passed`, `ruff` sạch |
-| **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ1, RQ2, RQ3`) | `4 / 4` | `DONE` | Nghiệm thu & đóng Sprint 4: hoàn tất `T4.1`–`T4.4` (`16,800` ván giải đấu + `8,756` ván ablations); `pytest -v` `334 passed in 72.71s`; `ruff` sạch |
-| **Sprint 5** | Rich CLI Demo, Visualizer (`Fig 1..5`), `README.md` & Rà soát Rubric | `3 / 3` | `DONE` | Nghiệm thu & đóng Sprint 5 (`COMPLETED / READY FOR SUBMISSION`): hoàn tất **T5.1** (`Rich CLI` & `play.py`), **T5.2** (`Fig 1..5` `300 DPI` + `summary_metrics.csv` / `summary_tables.md` / `sample_failure_cases.md`), và **T5.3** (`README.md` 8 mục + `References/` attribution + Rubric `100 + 10` điểm); `pytest -v` `347 passed in 157.26s`, `ruff` sạch |
+| **Sprint 2** | Tác tử Cấp 1–4 (`Random`, `RuleBased`, `Minimax/AB`, `MCTS UCT`) | `5 / 5` | `DONE` | Hoàn tất Sprint 2 (`45 passed` contract/search; full suite `216 passed`); `ruff` sạch |
+| **Sprint 3** | Tác tử Cấp 5–7 (`Fast/Strong Policy`, `ValueNet`, `TabularQ/DQN`, `HybridMCTS`) | `4 / 4` | `DONE` | Hoàn tất Sprint 3: đủ checkpoints + `.meta.json` đa seed Cấp 5–6, `HybridMCTSAgent` (`rollout`/`mixed` + LRU cache), `test_hybrid_mcts_agent.py` & `test_agents_contract.py` (`33 passed`), full suite `263 passed`, `ruff` sạch |
+| **Sprint 4** | Giải đấu Paired Round-Robin, Metrics & 4 Ablations (`RQ1, RQ2, RQ3`) | `4 / 4` | `DONE` | Hoàn tất Sprint 4: hoàn tất `T4.1`–`T4.4` (`16,800` ván giải đấu + `8,756` ván ablations); `pytest -v` `334 passed in 72.71s`; `ruff` sạch |
+| **Sprint 5** | Rich CLI Demo, Visualizer (`Fig 1..5`), `README.md` & Rà soát Rubric | `3 / 3` | `DONE` | Hoàn tất Sprint 5 (`COMPLETED / READY FOR SUBMISSION`): hoàn tất **T5.1** (`Rich CLI` & `play.py`), **T5.2** (`Fig 1..5` `300 DPI` + `summary_metrics.csv` / `summary_tables.md` / `sample_failure_cases.md`), và **T5.3** (`README.md` 8 mục + `References/` attribution + Rubric `100 + 10` điểm); `pytest -v` `347 passed in 157.26s`, `ruff` sạch |
 
 ---
 
@@ -25,12 +27,12 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 ### Phase 0: Tài liệu Thiết kế & Quy chuẩn
 | Mã | Tên tài liệu | Trạng thái | Ngày hoàn thành | Đường dẫn |
 |---|---|---|---|---|
-| **P0.1** | Đặc tả yêu cầu & 3 Câu hỏi Nghiên cứu (`RQ1, RQ2, RQ3`) | `DONE` | `2026-11-14` | [PRD.md](./PRD.md) |
-| **P0.2** | Quy chuẩn kỹ thuật & Trung thực học thuật | `DONE` | `2026-11-14` | [RULES.md](./RULES.md) |
+| **P0.1** | Định hướng đề tài & 3 Câu hỏi Nghiên cứu (`RQ1, RQ2, RQ3`) | `DONE` | `2026-11-14` | [PRD.md](./PRD.md) |
+| **P0.2** | Nguyên tắc trung thực học thuật & Quy ước kỹ thuật | `DONE` | `2026-11-14` | [RULES.md](./RULES.md) |
 | **P0.3** | Kiến trúc phân lớp, API, NN/RL/Hybrid & Schemas | `DONE` | `2026-11-14` | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | **P0.4** | Thiết kế giao diện `Rich CLI` & 5 bộ biểu đồ báo cáo | `DONE` | `2026-11-14` | [DESIGN.md](./DESIGN.md) |
 | **P0.5** | Kế hoạch phân rã công việc theo 5 Sprint | `DONE` | `2026-11-14` | [TASKS.md](./TASKS.md) |
-| **P0.6** | Bảng theo dõi tiến độ & nhật ký lỗi | `DONE` | `2026-11-14` | [PROGRESS.md](./PROGRESS.md) |
+| **P0.6** | Nhật ký thực nghiệm & lịch sử gỡ lỗi kỹ thuật | `DONE` | `2026-11-14` | [PROGRESS.md](./PROGRESS.md) |
 
 ### Sprint 1 – Sprint 5: Thực thi & Kiểm thử
 | Mã | Nội dung tóm tắt | Trạng thái | Ngày cập nhật | Bằng chứng kiểm chứng / Ghi chú |
@@ -60,7 +62,7 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 
 ## 3. Nhật ký Huấn luyện & Thực nghiệm (`Experiment & Checkpoint Registry`)
 
-*(Chỉ ghi nhận các lần chạy đã thực thi hoàn chỉnh kèm đường dẫn log/checkpoint thực tế; tuyệt đối không điền trước số liệu dự đoán.)*
+*(Ghi nhận nguyên trạng các lần chạy thực tế kèm đường dẫn log/checkpoint tương ứng.)*
 
 | Run ID | Ngày | Loại chạy (`Train` / `Tournament` / `Ablation`) | Cấu hình & Seed | Kết quả tóm tắt (Loss / Acc / Score) | Đường dẫn Checkpoint / Raw Log |
 |---|---|---|---|---|---|
@@ -112,9 +114,14 @@ Tài liệu cập nhật trạng thái thực tế của dự án **Game AI Đa 
 
 ---
 
-## 5. Checklist Kiểm tra Cuối cùng & Trình diễn Demo (`Pre-Submission Checklist`)
+> **Ghi chú kinh nghiệm (Từ 4 sự cố kỹ thuật & quá trình thực nghiệm):**
+> - **Quản lý ownership bộ nhớ với cache (`BUG-02`):** Dữ liệu nằm trong LRU cache phải xem là bất biến; khi cấp phát node trên cây tìm kiếm, luôn copy nông (`dict(priors)`) và giải phóng bằng gán mới (`= {}`) thay vì `.clear()` in-place.
+> - **Kiểm thử trên môi trường hiển thị thực tế (`BUG-03`, `BUG-04`):** Các lỗi giao diện `Rich` ở cửa sổ 80 cột hay lỗi đè nhãn trên `Matplotlib` chỉ lộ rõ khi kết hợp test tự động (`StringIO` / synthetic logs) với rà soát trực quan từng màn hình và từng file PNG `300 DPI`.
+> - **Môi trường đa thư mục con (`BUG-01`):** Cài editable package đúng thư mục chứa `pyproject.toml` kết hợp `tests/conftest.py` giúp tránh sai khác đường dẫn khi chạy lệnh từ thư mục cha hoặc thư mục con.
 
-Dự án đã hoàn tất toàn bộ **5/5 Sprint (`COMPLETED / READY FOR SUBMISSION`)**. Trước khi đóng gói nộp bài hoặc thuyết trình live demo, chỉ cần chạy nhanh danh sách xác nhận sau từ thư mục `Extended_Tic-Tac-Toe_Project/`:
+## 5. Checklist Tự Kiểm tra Trước Khi Thuyết trình & Nộp bài
+
+Dự án đã hoàn tất toàn bộ **5/5 Sprint (`COMPLETED / READY FOR SUBMISSION`)**. Trước khi đóng gói nộp bài hoặc thuyết trình live demo, rà soát lại các mục sau từ thư mục `Extended_Tic-Tac-Toe_Project/`:
 
 1. [x] **Mã nguồn & Chất lượng Code:** Chạy `ruff check src/ tests/ scripts/` (`All checks passed!`) và `pytest -v` (`347 passed`, 0 skipped/failed).
 2. [x] **Trọng số & Raw Logs Đầy đủ:** Đủ `15` checkpoints + `*.meta.json` (`checkpoints/`), `15` learning curves + `4` giải đấu (`16,800` ván) + `4` ablations (`8,756` ván) trong `logs/`, kiểm chứng toàn vẹn qua `python scripts/run_tournament.py --suite --verify-only`.
