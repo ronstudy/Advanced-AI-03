@@ -19,6 +19,8 @@ from pathlib import Path
 from typing import Literal
 
 from rich.console import Console, Group
+from rich.layout import Layout
+from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -45,7 +47,7 @@ from ttt_ai.engine.rules import (
     action_to_coords,
     coords_to_action,
 )
-from ttt_ai.training.checkpoint_io import resolve_meta_path
+from ttt_ai.training.checkpoint_io import resolve_meta_path, verify_checkpoint
 from ttt_ai.ui.theme import (
     STYLE_EMPTY_CELL,
     STYLE_ERROR,
@@ -60,6 +62,7 @@ from ttt_ai.ui.theme import (
     format_latency_style,
     format_move_coord,
     get_box_style,
+    get_symbol_table,
     should_use_ascii,
     style_for_heatmap_tier,
 )
@@ -113,6 +116,7 @@ class MatchTurnRecord:
     latency_ms: float
     agent_name: str
     decision: AgentDecision | None = None
+    agent_level: int | None = None
 
 
 @dataclass(slots=True)
@@ -237,8 +241,8 @@ def resolve_default_checkpoints(
 ) -> dict[str, Path]:
     """Discover verified checkpoints matching `board_config` under `checkpoints_dir`.
 
-    Only checkpoints whose weights file AND ``*.meta.json`` sidecar exist on
-    disk are returned.
+    Only checkpoints whose weights file, ``*.meta.json`` sidecar, SHA-256
+    digest, and ``board_config`` pass :func:`verify_checkpoint` are returned.
 
     Args:
         board_config: Target board dimensions and win-length configuration.
@@ -253,31 +257,93 @@ def resolve_default_checkpoints(
         return {}
 
     tag = board_config.name
-    candidates: dict[str, tuple[str, ...]] = {
-        "fast_policy": (f"fastpolicynet_{tag}.pt",),
-        "strong_policy": (f"strongpolicynet_{tag}.pt",),
-        "value": (f"valuenet_{tag}.pt",),
+    candidates: dict[str, tuple[tuple[str, ...], str | tuple[str, ...]]] = {
+        "fast_policy": ((f"fastpolicynet_{tag}.pt",), "FastPolicyNet"),
+        "strong_policy": ((f"strongpolicynet_{tag}.pt",), "StrongPolicyNet"),
+        "value": ((f"valuenet_{tag}.pt",), "ValueNet"),
         "dqn": (
-            f"dqnnet_{tag}_seed42.pt",
-            f"dqnnet_{tag}_seed123.pt",
-            f"dqnnet_{tag}_seed999.pt",
+            (
+                f"dqnnet_{tag}_seed42.pt",
+                f"dqnnet_{tag}_seed123.pt",
+                f"dqnnet_{tag}_seed999.pt",
+            ),
+            "DQNNet",
         ),
         "tabular_q": (
-            f"tabular_q_{tag}_seed42.pkl",
-            f"tabular_q_{tag}_seed123.pkl",
-            f"tabular_q_{tag}_seed999.pkl",
+            (
+                f"tabular_q_{tag}_seed42.pkl",
+                f"tabular_q_{tag}_seed123.pkl",
+                f"tabular_q_{tag}_seed999.pkl",
+            ),
+            ("TabularQAgent", "TabularQLearningAgent"),
         ),
     }
 
     found: dict[str, Path] = {}
-    for role, filenames in candidates.items():
+    for role, (filenames, expected_cls) in candidates.items():
         for filename in filenames:
             ckpt_path = base_dir / filename
             meta_path = resolve_meta_path(ckpt_path)
-            if ckpt_path.is_file() and meta_path.is_file():
-                found[role] = ckpt_path
-                break
+            if not (ckpt_path.is_file() and meta_path.is_file()):
+                continue
+            try:
+                verify_checkpoint(
+                    ckpt_path,
+                    board_config=board_config,
+                    expected_agent_class=expected_cls,
+                    meta_path=meta_path,
+                )
+            except (
+                FileNotFoundError,
+                CheckpointVerificationError,
+                InvalidConfigError,
+                OSError,
+            ):
+                continue
+            found[role] = ckpt_path
+            break
     return found
+
+
+def get_available_agent_levels(
+    board_config: BoardConfig,
+    checkpoints_dir: str | Path = "checkpoints",
+) -> dict[int, str]:
+    """Return all AI hierarchy levels usable on `board_config` with verified weights.
+
+    Levels 1-4 are always available. Learned levels (5: PolicyNet, 6: RL
+    TabularQ/DQN, 7: HybridMCTS) are included only when verified trained
+    checkpoints matching `board_config` exist under `checkpoints_dir`.
+
+    Args:
+        board_config: Target board dimensions and win-length configuration.
+        checkpoints_dir: Directory searched for trained Level 5-7 checkpoints.
+
+    Returns:
+        Ordered mapping ``{level: description}`` of selectable AI levels.
+    """
+    available: dict[int, str] = {
+        1: "L1_Random (Uniform Random Baseline)",
+        2: "L2_RuleBased (Generalized Newell & Simon 6-Tier Rules)",
+        3: "L3_AlphaBeta (Minimax + Alpha-Beta Pruning + ID)",
+        4: "L4_MCTS (Pure 4-Phase UCT Tree Search)",
+    }
+    ckpts = resolve_default_checkpoints(board_config, checkpoints_dir=checkpoints_dir)
+
+    if "strong_policy" in ckpts or "fast_policy" in ckpts:
+        policy_tag = "StrongPolicyNet" if "strong_policy" in ckpts else "FastPolicyNet"
+        available[5] = f"L5_PolicyNet (Supervised {policy_tag})"
+
+    if "dqn" in ckpts:
+        available[6] = "L6_DQN (RL Self-Play + Opponent Pool)"
+    elif "tabular_q" in ckpts:
+        available[6] = "L6_TabularQ (Canonical Q-Table RL)"
+
+    if "strong_policy" in ckpts or "fast_policy" in ckpts:
+        leaf_desc = "Policy + ValueNet Mixed" if "value" in ckpts else "Policy + Rollout"
+        available[7] = f"L7_HybridMCTS (AlphaGo-inspired PUCT, {leaf_desc})"
+
+    return available
 
 
 def create_agent_for_cli(
@@ -476,10 +542,12 @@ def format_extended_board_ascii(
         for c in range(cols):
             val = int(board[r, c])
             mark = "X" if val == PLAYER_X else ("O" if val == PLAYER_O else ".")
-            if (r, c) in win_cells:
+            is_last = last_rc is not None and (r, c) == last_rc
+            is_win = (r, c) in win_cells
+            if is_last:
                 token = f"[{mark}]"
-            elif last_rc is not None and (r, c) == last_rc:
-                token = f"<{mark}>"
+            elif is_win:
+                token = f"*{mark}*"
             else:
                 token = f" {mark} "
             cells.append(token)
@@ -488,9 +556,9 @@ def format_extended_board_ascii(
         lines.append("   +" + "---+" * cols)
 
     if last_rc is not None and resolved_last is not None:
-        lines.append(f"Last Move: ({last_rc[0]}, {last_rc[1]}) [#{resolved_last}] (< > = last)")
+        lines.append(f"Last Move: ({last_rc[0]}, {last_rc[1]}) [#{resolved_last}] ([ ] = last)")
     if game.winning_line is not None:
-        lines.append(f"Winning Line: {list(game.winning_line)} ([ ] = winning line)")
+        lines.append(f"Winning Line: {list(game.winning_line)} (* * / [ ] = winning line)")
     return "\n".join(lines)
 
 
@@ -505,6 +573,7 @@ def build_board_panel(
     last_move = game.last_move
     last_rc = action_to_coords(last_move, cols) if last_move is not None else None
     win_cells = set(game.winning_line) if game.winning_line is not None else set()
+    symbols = get_symbol_table(ascii_only)
 
     table = Table(
         box=get_box_style(ascii_only),
@@ -513,9 +582,14 @@ def build_board_panel(
         padding=(0, 1),
         header_style="bold dim",
     )
-    table.add_column("r\\c", justify="right", style="bold dim", width=3)
+    table.add_column("r\\c", justify="right", style="bold dim", width=5, no_wrap=True)
     for col in range(cols):
-        table.add_column(str(col), justify="center", width=5)
+        table.add_column(str(col), justify="center", width=5, no_wrap=True)
+
+    last_l = symbols["last_prefix"]
+    last_r = symbols["last_suffix"]
+    win_l = symbols["win_prefix"]
+    win_r = symbols["win_suffix"]
 
     for row in range(rows):
         row_cells: list[Text] = [Text(str(row), style="bold dim")]
@@ -525,19 +599,19 @@ def build_board_panel(
             is_win = (row, col) in win_cells
             is_last = last_rc is not None and (row, col) == last_rc
 
-            if val == PLAYER_X:
-                label = "[X]" if is_win else ("<X>" if is_last else " X ")
+            if val == PLAYER_X or val == PLAYER_O:
+                mark = "X" if val == PLAYER_X else "O"
+                base_style = STYLE_PLAYER_X if val == PLAYER_X else STYLE_PLAYER_O
+                if is_last:
+                    label = f"{last_l}{mark}{last_r}"
+                elif is_win:
+                    label = f"{win_l}{mark}{win_r}"
+                else:
+                    label = f" {mark} "
                 style = (
                     STYLE_WIN_CELL
                     if is_win
-                    else (STYLE_LAST_MOVE if is_last else STYLE_PLAYER_X)
-                )
-            elif val == PLAYER_O:
-                label = "[O]" if is_win else ("<O>" if is_last else " O ")
-                style = (
-                    STYLE_WIN_CELL
-                    if is_win
-                    else (STYLE_LAST_MOVE if is_last else STYLE_PLAYER_O)
+                    else (STYLE_LAST_MOVE if is_last else base_style)
                 )
             else:
                 label = f"{idx:>2} "
@@ -549,7 +623,11 @@ def build_board_panel(
     legend.append("X", style=STYLE_PLAYER_X)
     legend.append(" | ")
     legend.append("O", style=STYLE_PLAYER_O)
-    legend.append(" | < > Last Move | [ ] Winning Line", style="dim")
+    legend.append(" | ")
+    legend.append(f"{last_l} {last_r}", style=STYLE_LAST_MOVE)
+    legend.append(" Last Move | ", style="dim")
+    legend.append(f"{win_l} {win_r}", style=STYLE_WIN_CELL)
+    legend.append(" Winning Line", style="dim")
 
     return Panel(
         Group(table, legend),
@@ -569,7 +647,7 @@ def build_telemetry_panel(
     if turn_record is None:
         return Panel(
             Text("Waiting for first move...", style="dim"),
-            title="[bold]TURN TELEMETRY[/bold]",
+            title="[bold]AI TELEMETRY (Last Move)[/bold]",
             box=get_box_style(ascii_only),
             border_style="cyan",
         )
@@ -582,7 +660,12 @@ def build_telemetry_panel(
     lat_style = format_latency_style(turn_record.latency_ms, budget_ms=budget_ms)
     move_str = f"({turn_record.row}, {turn_record.col}) [#{turn_record.action}]"
 
-    actor_label = f"{turn_record.agent_name} ({turn_record.player.symbol})"
+    level_suffix = (
+        f" [Lv.{turn_record.agent_level}]"
+        if turn_record.agent_level is not None and turn_record.agent_level > 0
+        else ""
+    )
+    actor_label = f"{turn_record.agent_name}{level_suffix} ({turn_record.player.symbol})"
     table.add_row("Actor", Text(actor_label, style=player_style))
     table.add_row("Move", Text(move_str, style="bold"))
     table.add_row("Latency", Text(f"{turn_record.latency_ms:.3f} ms", style=lat_style))
@@ -590,7 +673,7 @@ def build_telemetry_panel(
     decision = turn_record.decision
     if decision is not None:
         search_str = (
-            f"nodes={decision.nodes_visited}, sims={decision.simulations}, "
+            f"nodes={decision.nodes_visited} | sims={decision.simulations} | "
             f"depth={decision.depth_reached}"
         )
         table.add_row("Search", Text(search_str))
@@ -602,19 +685,39 @@ def build_telemetry_panel(
         table.add_row("Value Est.", Text(val_str))
     else:
         table.add_row("Search", Text("Human input", style="dim"))
+        table.add_row("Value Est.", Text("n/a", style="dim"))
 
     return Panel(
         table,
-        title="[bold]TURN TELEMETRY (Last Move)[/bold]",
+        title="[bold]AI TELEMETRY (Last Move)[/bold]",
         box=get_box_style(ascii_only),
         border_style="cyan",
     )
+
+
+def _is_probability_distribution(
+    decision: AgentDecision,
+    agent_level: int | None = None,
+) -> bool:
+    """Return True when `decision.action_scores` represents probabilities or visit shares."""
+    if decision.prior_probs:
+        return True
+    if agent_level in (1, 4, 7):
+        return True
+    if agent_level in (2, 3, 6):
+        return False
+
+    values = list(decision.action_scores.values())
+    if not values:
+        return False
+    return all(0.0 <= val <= 1.0 for val in values) and abs(sum(values) - 1.0) <= 1e-2
 
 
 def build_heatmap_panel(
     game: ExtendedTicTacToe,
     decision: AgentDecision | None,
     *,
+    agent_level: int | None = None,
     ascii_only: bool = False,
 ) -> Panel:
     """Build the Rich Panel rendering the 5-tier action heatmap and Top-5 moves."""
@@ -630,16 +733,20 @@ def build_heatmap_panel(
     scores = decision.action_scores
     min_score = min(scores.values())
     max_score = max(scores.values())
+    is_prob = _is_probability_distribution(decision, agent_level=agent_level)
+    symbols = get_symbol_table(ascii_only)
+    empty_dot = symbols["empty_dot"]
 
     grid = Table(
-        box=get_box_style(ascii_only),
+        box=None,
         show_header=True,
-        padding=(0, 1),
+        padding=(0, 0),
         header_style="bold dim",
     )
-    grid.add_column("r\\c", justify="right", style="bold dim", width=3)
+    grid.add_column("r\\c", justify="right", style="bold dim", width=4, no_wrap=True)
+    cell_width = 7 if is_prob else 8
     for col in range(cols):
-        grid.add_column(str(col), justify="center", width=7)
+        grid.add_column(str(col), justify="center", width=cell_width, no_wrap=True)
 
     for row in range(rows):
         row_cells: list[Text] = [Text(str(row), style="bold dim")]
@@ -650,17 +757,21 @@ def build_heatmap_panel(
                 is_top1 = idx == decision.action
                 tier = classify_heatmap_tier(val, min_score, max_score, is_top1=is_top1)
                 cell_style = style_for_heatmap_tier(tier)
-                formatted = f"[{val:+.2f}]" if is_top1 else f"{val:+.2f}"
+                if is_prob:
+                    pct = int(round(val * 100.0))
+                    formatted = f"[{pct:>2d}%]" if is_top1 else f"{pct:>2d}%"
+                else:
+                    formatted = f"[{val:+.2f}]" if is_top1 else f"{val:+.2f}"
                 row_cells.append(Text(formatted, style=cell_style))
             else:
-                row_cells.append(Text("  .  ", style=style_for_heatmap_tier(0)))
+                row_cells.append(Text(empty_dot, style=style_for_heatmap_tier(0)))
         grid.add_row(*row_cells)
 
     top_moves = decision.top_actions(k=5)
     has_priors = bool(decision.prior_probs)
     top_lines: list[Text] = []
     header_lbl = (
-        "Top-5 Moves (Visit/Score vs Policy Prior P(s,a)):"
+        "Top-5 Moves (Visit N(s,a)/N(s) | Prior P(s,a)):"
         if has_priors
         else "Top-5 Moves:"
     )
@@ -671,10 +782,15 @@ def build_heatmap_panel(
         if has_priors:
             prior_val = decision.prior_probs.get(action, 0.0)
             line_text = (
-                f"  {rank}. {coord:<14} score={score:+.3f} | prior={prior_val * 100.0:5.1f}%"
+                f" {rank}. {coord:<12} visit={score * 100.0:4.1f}%|"
+                f"prior={prior_val * 100.0:4.1f}%"
             )
+        elif is_prob:
+            metric_lbl = "visit" if decision.simulations > 0 else "prob"
+            line_text = f" {rank}. {coord:<14} {metric_lbl}={score * 100.0:5.1f}%"
         else:
-            line_text = f"  {rank}. {coord:<14} score={score:+.4f}"
+            metric_lbl = "Q" if agent_level == 6 else "score"
+            line_text = f" {rank}. {coord:<14} {metric_lbl}={score:+.4f}"
         top_lines.append(Text(line_text, style="bold bright_yellow" if rank == 1 else "white"))
 
     return Panel(
@@ -683,6 +799,132 @@ def build_heatmap_panel(
         box=get_box_style(ascii_only),
         border_style="magenta",
     )
+
+
+def _build_dashboard_components(
+    game: ExtendedTicTacToe,
+    *,
+    mode: GameMode,
+    actor_x_name: str,
+    actor_o_name: str,
+    turn_records: list[MatchTurnRecord],
+    status_message: str = "",
+    status_kind: Literal["info", "warning", "error"] = "info",
+    budget_ms: float | None = None,
+    ascii_only: bool = False,
+) -> tuple[Text, Panel, Panel, Panel, Group]:
+    """Assemble shared header, panels, and footer components for dashboard renderers."""
+    symbols = get_symbol_table(ascii_only)
+    dash = symbols["dash"]
+    arrow = symbols["arrow_right"]
+
+    if game.is_terminal():
+        if game.winner is not None:
+            turn_status = f"FINISHED {dash} Winner: Player {game.winner.symbol}"
+        else:
+            turn_status = f"FINISHED {dash} Draw"
+    else:
+        turn_status = (
+            f"Turn #{game.move_count + 1} | "
+            f"To Move: Player {game.current_player.symbol}"
+        )
+
+    budget_label = f"{budget_ms:.0f} ms" if budget_ms is not None else "Default"
+    header = Text(
+        f"Extended Tic-Tac-Toe AI Arena ({game.rows}x{game.cols}, K={game.win_k}) | "
+        f"Mode: {mode.value} | Budget: {budget_label}\n"
+        f"X={actor_x_name} vs O={actor_o_name} | {turn_status}",
+        style=STYLE_HEADER_BANNER,
+    )
+
+    last_record = turn_records[-1] if turn_records else None
+    last_decision = last_record.decision if last_record is not None else None
+    last_level = last_record.agent_level if last_record is not None else None
+
+    board_panel = build_board_panel(game, ascii_only=ascii_only)
+    telemetry_panel = build_telemetry_panel(
+        last_record,
+        budget_ms=budget_ms,
+        ascii_only=ascii_only,
+    )
+    heatmap_panel = build_heatmap_panel(
+        game,
+        last_decision,
+        agent_level=last_level,
+        ascii_only=ascii_only,
+    )
+
+    recent_history = turn_records[-6:]
+    hist_str = f" {arrow} ".join(
+        f"{rec.turn_index}.{rec.player.symbol}({rec.row},{rec.col})"
+        for rec in recent_history
+    )
+    history_text = Text(f"History: {hist_str or '(none)'}", style="dim")
+
+    footer_items: list[object] = [history_text]
+    if status_message:
+        msg_style = (
+            STYLE_ERROR
+            if status_kind == "error"
+            else (STYLE_WARNING if status_kind == "warning" else STYLE_INFO)
+        )
+        footer_items.append(Text(status_message, style=msg_style))
+
+    return header, board_panel, telemetry_panel, heatmap_panel, Group(*footer_items)
+
+
+def build_dashboard_layout(
+    game: ExtendedTicTacToe,
+    *,
+    mode: GameMode,
+    actor_x_name: str,
+    actor_o_name: str,
+    turn_records: list[MatchTurnRecord],
+    status_message: str = "",
+    status_kind: Literal["info", "warning", "error"] = "info",
+    budget_ms: float | None = None,
+    ascii_only: bool = False,
+) -> Layout:
+    """Build the 2-column ``rich.layout.Layout`` live dashboard (48% left / 52% right)."""
+    header, board_panel, telemetry_panel, heatmap_panel, footer_group = (
+        _build_dashboard_components(
+            game,
+            mode=mode,
+            actor_x_name=actor_x_name,
+            actor_o_name=actor_o_name,
+            turn_records=turn_records,
+            status_message=status_message,
+            status_kind=status_kind,
+            budget_ms=budget_ms,
+            ascii_only=ascii_only,
+        )
+    )
+    box_style = get_box_style(ascii_only)
+
+    root = Layout(name="root")
+    header_panel = Panel(header, box=box_style, border_style="bright_blue")
+    footer_panel = Panel(
+        footer_group,
+        title="[bold]HISTORY & CONTROLS[/bold]",
+        box=box_style,
+        border_style="white",
+    )
+
+    left_layout = Layout(board_panel, name="left", ratio=48)
+    right_layout = Layout(name="right", ratio=52)
+    right_layout.split_column(
+        Layout(telemetry_panel, name="telemetry", size=7),
+        Layout(heatmap_panel, name="heatmap", ratio=1),
+    )
+    body_layout = Layout(name="body")
+    body_layout.split_row(left_layout, right_layout)
+
+    root.split_column(
+        Layout(header_panel, name="header", size=4),
+        body_layout,
+        Layout(footer_panel, name="footer", size=4 if not status_message else 5),
+    )
+    return root
 
 
 def build_dashboard_panel(
@@ -697,61 +939,35 @@ def build_dashboard_panel(
     budget_ms: float | None = None,
     ascii_only: bool = False,
 ) -> Panel:
-    """Assemble the complete live match dashboard Panel."""
-    if game.is_terminal():
-        if game.winner is not None:
-            turn_status = f"FINISHED — Winner: Player {game.winner.symbol}"
-        else:
-            turn_status = "FINISHED — Draw"
-    else:
-        turn_status = (
-            f"Turn #{game.move_count + 1} | "
-            f"To Move: Player {game.current_player.symbol}"
+    """Assemble the complete live match dashboard Panel with 48/52 column ratio."""
+    header, board_panel, telemetry_panel, heatmap_panel, footer_group = (
+        _build_dashboard_components(
+            game,
+            mode=mode,
+            actor_x_name=actor_x_name,
+            actor_o_name=actor_o_name,
+            turn_records=turn_records,
+            status_message=status_message,
+            status_kind=status_kind,
+            budget_ms=budget_ms,
+            ascii_only=ascii_only,
         )
-
-    header = Text(
-        f"Extended Tic-Tac-Toe ({game.rows}x{game.cols}, K={game.win_k}) | "
-        f"Mode: {mode.value} | X={actor_x_name} vs O={actor_o_name}\n{turn_status}",
-        style=STYLE_HEADER_BANNER,
     )
-
-    last_record = turn_records[-1] if turn_records else None
-    last_decision = last_record.decision if last_record is not None else None
-
-    board_panel = build_board_panel(game, ascii_only=ascii_only)
-    telemetry_panel = build_telemetry_panel(
-        last_record,
-        budget_ms=budget_ms,
-        ascii_only=ascii_only,
-    )
-    heatmap_panel = build_heatmap_panel(game, last_decision, ascii_only=ascii_only)
 
     layout_grid = Table.grid(expand=True)
-    layout_grid.add_column(ratio=1)
-    layout_grid.add_column(ratio=1)
+    layout_grid.add_column(ratio=48)
+    layout_grid.add_column(ratio=52)
     right_col = Group(telemetry_panel, heatmap_panel)
     layout_grid.add_row(board_panel, right_col)
 
-    recent_history = turn_records[-6:]
-    hist_str = " -> ".join(
-        f"{rec.turn_index}.{rec.player.symbol}({rec.row},{rec.col})"
-        for rec in recent_history
+    return Panel(
+        Group(header, layout_grid, footer_group),
+        box=get_box_style(ascii_only),
+        border_style="white",
     )
-    history_text = Text(f"History: {hist_str or '(none)'}", style="dim")
-
-    parts: list[object] = [header, layout_grid, history_text]
-    if status_message:
-        msg_style = (
-            STYLE_ERROR
-            if status_kind == "error"
-            else (STYLE_WARNING if status_kind == "warning" else STYLE_INFO)
-        )
-        parts.append(Text(status_message, style=msg_style))
-
-    return Panel(Group(*parts), box=get_box_style(ascii_only), border_style="white")
 
 
-class InteractiveMatchController:
+class InteractiveCLIApp:
     """Orchestrates Human vs AI, AI vs AI, and Human vs Human matches via Public APIs."""
 
     def __init__(
@@ -769,8 +985,10 @@ class InteractiveMatchController:
         step_by_step_ai: bool = False,
         ascii_only: bool | None = None,
         budget_ms: float | None = None,
+        use_live: bool | None = None,
+        use_layout: bool | None = None,
     ) -> None:
-        """Initialize the match controller and validate mode-to-agent assignments.
+        """Initialize the Rich CLI app and validate mode-to-agent assignments.
 
         Args:
             game: Active :class:`ExtendedTicTacToe` instance.
@@ -787,6 +1005,10 @@ class InteractiveMatchController:
                 `AI vs AI` mode.
             ascii_only: Optional override for ASCII box drawing; auto-detects if ``None``.
             budget_ms: Optional reference time budget shown in latency telemetry.
+            use_live: Enable flicker-free terminal updates / ``rich.live.Live``;
+                defaults to ``console.is_terminal``.
+            use_layout: Use ``rich.layout.Layout`` 2-column split instead of
+                panel-grid; defaults to ``True`` on terminals with ``height >= 30``.
 
         Raises:
             InvalidConfigError: If `game`, `mode`, `agent_x`/`agent_o`, or
@@ -837,6 +1059,14 @@ class InteractiveMatchController:
         self._step_delay_ms: float = float(step_delay_ms)
         self._step_by_step_ai: bool = bool(step_by_step_ai)
         self._budget_ms: float | None = budget_ms
+        self._use_live: bool = (
+            bool(self._console.is_terminal) if use_live is None else bool(use_live)
+        )
+        self._use_layout: bool = (
+            (bool(self._console.is_terminal) and self._console.height >= 30)
+            if use_layout is None
+            else bool(use_layout)
+        )
         self._turn_records: list[MatchTurnRecord] = []
         self._invalid_input_count: int = 0
 
@@ -866,14 +1096,15 @@ class InteractiveMatchController:
             return None
         return Player.X if self._agent_x is None else Player.O
 
-    def _render_dashboard(
+    def _build_renderable(
         self,
         *,
         status_message: str = "",
         status_kind: Literal["info", "warning", "error"] = "info",
-    ) -> None:
-        """Render the current match dashboard to the Rich Console."""
-        panel = build_dashboard_panel(
+    ) -> Layout | Panel:
+        """Build either a fixed 2-column ``Layout`` or non-clipping ``Panel`` dashboard."""
+        builder = build_dashboard_layout if self._use_layout else build_dashboard_panel
+        return builder(
             self._game,
             mode=self._mode,
             actor_x_name=self._actor_name(Player.X),
@@ -884,7 +1115,60 @@ class InteractiveMatchController:
             budget_ms=self._budget_ms,
             ascii_only=self._ascii_only,
         )
-        self._console.print(panel)
+
+    def _render_dashboard(
+        self,
+        *,
+        status_message: str = "",
+        status_kind: Literal["info", "warning", "error"] = "info",
+    ) -> None:
+        """Render the current match dashboard to the Rich Console."""
+        renderable = self._build_renderable(
+            status_message=status_message,
+            status_kind=status_kind,
+        )
+        if self._use_live and self._console.is_terminal:
+            self._console.clear()
+        self._console.print(renderable)
+
+    def _execute_ai_turn(
+        self,
+        active_agent: BaseAgent,
+    ) -> tuple[str, Literal["info", "warning", "error"]]:
+        """Run one AI agent decision via public Game APIs and append turn telemetry."""
+        acting_player = self._game.current_player
+        decision = active_agent.select_action(self._game)
+        self._game.step(decision.action)
+        row, col = action_to_coords(decision.action, self._game.cols)
+        self._turn_records.append(
+            MatchTurnRecord(
+                turn_index=self._game.move_count,
+                player=acting_player,
+                action=decision.action,
+                row=row,
+                col=col,
+                latency_ms=decision.latency_ms,
+                agent_name=active_agent.name,
+                decision=decision,
+                agent_level=active_agent.level,
+            )
+        )
+        status_msg = (
+            f"{active_agent.name} ({acting_player.symbol}) played "
+            f"({row}, {col}) [#{decision.action}] in {decision.latency_ms:.2f} ms."
+        )
+        return status_msg, "info"
+
+    def _format_final_status(self, *, quit_early: bool) -> str:
+        """Format match conclusion banner message."""
+        if quit_early:
+            return "Match ended early by user."
+        if self._game.winner is not None:
+            return (
+                f"Match Complete: {self._actor_name(self._game.winner)} "
+                f"({self._game.winner.symbol}) WINS!"
+            )
+        return "Match Complete: DRAW!"
 
     def _handle_undo(self) -> tuple[str, Literal["info", "warning"]]:
         """Revert previous turn(s) cleanly while keeping turn history synchronized."""
@@ -921,122 +1205,130 @@ class InteractiveMatchController:
         status_kind: Literal["info", "warning", "error"] = "info"
         quit_early = False
 
-        while not self._game.is_terminal():
-            self._render_dashboard(status_message=status_msg, status_kind=status_kind)
-            active_agent = self._active_agent()
+        use_live_autoplay = (
+            self._mode is GameMode.AI_VS_AI
+            and self._use_live
+            and not self._step_by_step_ai
+        )
 
-            if active_agent is not None:
-                if self._mode is GameMode.AI_VS_AI and self._step_by_step_ai:
+        if use_live_autoplay:
+            with Live(
+                self._build_renderable(
+                    status_message=status_msg,
+                    status_kind=status_kind,
+                ),
+                console=self._console,
+                auto_refresh=False,
+                transient=False,
+            ) as live:
+                while not self._game.is_terminal():
+                    if self._step_delay_ms > 0.0:
+                        time.sleep(self._step_delay_ms / 1000.0)
+                    active_agent = self._active_agent()
+                    assert active_agent is not None
+                    status_msg, status_kind = self._execute_ai_turn(active_agent)
+                    live.update(
+                        self._build_renderable(
+                            status_message=status_msg,
+                            status_kind=status_kind,
+                        ),
+                        refresh=True,
+                    )
+                final_msg = self._format_final_status(quit_early=False)
+                live.update(
+                    self._build_renderable(status_message=final_msg, status_kind="info"),
+                    refresh=True,
+                )
+        else:
+            while not self._game.is_terminal():
+                self._render_dashboard(status_message=status_msg, status_kind=status_kind)
+                active_agent = self._active_agent()
+
+                if active_agent is not None:
+                    if self._mode is GameMode.AI_VS_AI and self._step_by_step_ai:
+                        try:
+                            step_cmd = self._input_fn(
+                                f"Press Enter for {active_agent.name} move (or 'q' to quit): "
+                            )
+                        except (EOFError, KeyboardInterrupt):
+                            quit_early = True
+                            break
+                        if step_cmd.strip().lower() in ("q", "quit", "exit"):
+                            quit_early = True
+                            break
+                    elif self._mode is GameMode.AI_VS_AI and self._step_delay_ms > 0.0:
+                        time.sleep(self._step_delay_ms / 1000.0)
+
+                    status_msg, status_kind = self._execute_ai_turn(active_agent)
+                    continue
+
+                # Human-controlled turn: keep looping until valid move or exit command.
+                current_sym = self._game.current_player.symbol
+                actor_name = self._actor_name(self._game.current_player)
+                prompt = (
+                    f"[{actor_name} / {current_sym}] Enter move 'r,c' or index "
+                    f"[0-{self._game.num_cells - 1}] ('u'=undo, 'h'=help, 'q'=quit): "
+                )
+                turn_start = time.perf_counter()
+                while True:
                     try:
-                        step_cmd = self._input_fn(
-                            f"Press Enter for {active_agent.name} move (or 'q' to quit): "
-                        )
+                        raw = self._input_fn(prompt)
                     except (EOFError, KeyboardInterrupt):
                         quit_early = True
                         break
-                    if step_cmd.strip().lower() in ("q", "quit", "exit"):
+
+                    try:
+                        cmd = parse_user_input(raw, self._game)
+                    except IllegalMoveError as exc:
+                        self._invalid_input_count += 1
+                        status_msg = f"Invalid input: {exc}"
+                        status_kind = "warning"
+                        self._console.print(f"[{STYLE_WARNING}]{status_msg}[/{STYLE_WARNING}]")
+                        continue
+
+                    if cmd.kind == "quit":
                         quit_early = True
                         break
-                elif self._mode is GameMode.AI_VS_AI and self._step_delay_ms > 0.0:
-                    time.sleep(self._step_delay_ms / 1000.0)
+                    if cmd.kind == "help":
+                        status_msg = _HELP_TEXT
+                        status_kind = "info"
+                        self._console.print(f"[{STYLE_INFO}]{status_msg}[/{STYLE_INFO}]")
+                        continue
+                    if cmd.kind == "undo":
+                        status_msg, status_kind = self._handle_undo()
+                        break
 
-                acting_player = self._game.current_player
-                decision = active_agent.select_action(self._game)
-                self._game.step(decision.action)
-                row, col = action_to_coords(decision.action, self._game.cols)
-                self._turn_records.append(
-                    MatchTurnRecord(
-                        turn_index=self._game.move_count,
-                        player=acting_player,
-                        action=decision.action,
-                        row=row,
-                        col=col,
-                        latency_ms=decision.latency_ms,
-                        agent_name=active_agent.name,
-                        decision=decision,
+                    assert cmd.action is not None
+                    acting_player = self._game.current_player
+                    human_latency_ms = (time.perf_counter() - turn_start) * 1000.0
+                    self._game.step(cmd.action)
+                    row, col = action_to_coords(cmd.action, self._game.cols)
+                    self._turn_records.append(
+                        MatchTurnRecord(
+                            turn_index=self._game.move_count,
+                            player=acting_player,
+                            action=cmd.action,
+                            row=row,
+                            col=col,
+                            latency_ms=human_latency_ms,
+                            agent_name=actor_name,
+                            decision=None,
+                            agent_level=None,
+                        )
                     )
-                )
-                status_msg = (
-                    f"{active_agent.name} ({acting_player.symbol}) played "
-                    f"({row}, {col}) [#{decision.action}] in {decision.latency_ms:.2f} ms."
-                )
-                status_kind = "info"
-                continue
-
-            # Human-controlled turn: keep looping until valid move or exit command.
-            current_sym = self._game.current_player.symbol
-            actor_name = self._actor_name(self._game.current_player)
-            prompt = (
-                f"[{actor_name} / {current_sym}] Enter move 'r,c' or index "
-                f"[0-{self._game.num_cells - 1}] ('u'=undo, 'h'=help, 'q'=quit): "
-            )
-            turn_start = time.perf_counter()
-            while True:
-                try:
-                    raw = self._input_fn(prompt)
-                except (EOFError, KeyboardInterrupt):
-                    quit_early = True
-                    break
-
-                try:
-                    cmd = parse_user_input(raw, self._game)
-                except IllegalMoveError as exc:
-                    self._invalid_input_count += 1
-                    status_msg = f"Invalid input: {exc}"
-                    status_kind = "warning"
-                    self._console.print(f"[{STYLE_WARNING}]{status_msg}[/{STYLE_WARNING}]")
-                    continue
-
-                if cmd.kind == "quit":
-                    quit_early = True
-                    break
-                if cmd.kind == "help":
-                    status_msg = _HELP_TEXT
+                    status_msg = (
+                        f"{actor_name} ({acting_player.symbol}) played "
+                        f"({row}, {col}) [#{cmd.action}]."
+                    )
                     status_kind = "info"
-                    self._console.print(f"[{STYLE_INFO}]{status_msg}[/{STYLE_INFO}]")
-                    continue
-                if cmd.kind == "undo":
-                    status_msg, status_kind = self._handle_undo()
                     break
 
-                assert cmd.action is not None
-                acting_player = self._game.current_player
-                human_latency_ms = (time.perf_counter() - turn_start) * 1000.0
-                self._game.step(cmd.action)
-                row, col = action_to_coords(cmd.action, self._game.cols)
-                self._turn_records.append(
-                    MatchTurnRecord(
-                        turn_index=self._game.move_count,
-                        player=acting_player,
-                        action=cmd.action,
-                        row=row,
-                        col=col,
-                        latency_ms=human_latency_ms,
-                        agent_name=actor_name,
-                        decision=None,
-                    )
-                )
-                status_msg = (
-                    f"{actor_name} ({acting_player.symbol}) played "
-                    f"({row}, {col}) [#{cmd.action}]."
-                )
-                status_kind = "info"
-                break
+                if quit_early:
+                    break
 
-            if quit_early:
-                break
+            final_msg = self._format_final_status(quit_early=quit_early)
+            self._render_dashboard(status_message=final_msg, status_kind="info")
 
-        if quit_early:
-            final_msg = "Match ended early by user."
-        elif self._game.winner is not None:
-            final_msg = (
-                f"Match Complete: {self._actor_name(self._game.winner)} "
-                f"({self._game.winner.symbol}) WINS!"
-            )
-        else:
-            final_msg = "Match Complete: DRAW!"
-
-        self._render_dashboard(status_message=final_msg, status_kind="info")
         last_latency = self._turn_records[-1].latency_ms if self._turn_records else None
         final_ascii = format_extended_board_ascii(
             self._game,
@@ -1054,6 +1346,10 @@ class InteractiveMatchController:
             final_board_text=final_ascii,
             invalid_input_count=self._invalid_input_count,
         )
+
+
+# Backwards-compatible alias retained for Sprint 4 imports.
+InteractiveMatchController = InteractiveCLIApp
 
 
 def _prompt_choice(
@@ -1082,7 +1378,7 @@ def run_setup_wizard(
     console: Console | None = None,
     checkpoints_dir: str | Path = "checkpoints",
     ascii_only: bool | None = None,
-) -> InteractiveMatchController:
+) -> InteractiveCLIApp:
     """Run an interactive Setup Wizard to configure board, mode, AI level, and budget.
 
     Args:
@@ -1092,7 +1388,7 @@ def run_setup_wizard(
         ascii_only: Optional override for ASCII box drawing.
 
     Returns:
-        Configured :class:`InteractiveMatchController` ready for :meth:`run_match`.
+        Configured :class:`InteractiveCLIApp` ready for :meth:`run_match`.
     """
     use_ascii = should_use_ascii() if ascii_only is None else bool(ascii_only)
     out_console = (
@@ -1136,11 +1432,10 @@ def run_setup_wizard(
         out_console,
     )
 
-    available_ckpts = resolve_default_checkpoints(board_cfg, checkpoints_dir=checkpoints_dir)
-    out_console.print(
-        f"\nAvailable trained checkpoints for {board_cfg.name}: "
-        f"{sorted(available_ckpts.keys()) or ['none (Levels 1-4 available)']}"
-    )
+    available_levels = get_available_agent_levels(board_cfg, checkpoints_dir=checkpoints_dir)
+    out_console.print(f"\n[bold]Available AI Agents for {board_cfg.name}:[/bold]")
+    for lvl, desc in available_levels.items():
+        out_console.print(f"  [{lvl}] {desc}")
 
     budget_raw = input_fn("Time budget ms (positive number or 'none', default=50): ").strip()
     if budget_raw.lower() == "none":
@@ -1163,10 +1458,12 @@ def run_setup_wizard(
         seed = 42
 
     game = ExtendedTicTacToe(board_cfg.rows, board_cfg.cols, board_cfg.win_k)
+    level_choices_str = ", ".join(str(lvl) for lvl in available_levels)
 
     def _prompt_agent(label: str, agent_seed: int) -> BaseAgent:
         out_console.print(
-            f"\nSelect {label}: [easy / medium / hard] or AI Level [1..7] (default=medium):"
+            f"\nSelect {label}: level [{level_choices_str}] or preset "
+            "[easy / medium / hard] (default=medium):"
         )
         while True:
             raw = input_fn(f"{label} choice: ").strip().lower() or "medium"
@@ -1182,7 +1479,7 @@ def run_setup_wizard(
                 out_console.print(f"[{STYLE_WARNING}]{exc}[/{STYLE_WARNING}]")
 
     if mode_choice == "3":
-        return InteractiveMatchController(
+        return InteractiveCLIApp(
             game=game,
             mode=GameMode.HUMAN_VS_HUMAN,
             input_fn=input_fn,
@@ -1202,14 +1499,14 @@ def run_setup_wizard(
             out_console,
         )
         is_step = step_mode in ("s", "step")
-        return InteractiveMatchController(
+        return InteractiveCLIApp(
             game=game,
             mode=GameMode.AI_VS_AI,
             agent_x=agent_x,
             agent_o=agent_o,
             input_fn=input_fn,
             console=out_console,
-            step_delay_ms=0.0 if is_step else 400.0,
+            step_delay_ms=0.0 if is_step else 600.0,
             step_by_step_ai=is_step,
             ascii_only=use_ascii,
             budget_ms=budget_ms,
@@ -1224,7 +1521,7 @@ def run_setup_wizard(
     )
     ai_agent = _prompt_agent("AI Opponent", seed)
     if side_choice == "x":
-        return InteractiveMatchController(
+        return InteractiveCLIApp(
             game=game,
             mode=GameMode.HUMAN_VS_AI,
             agent_x=None,
@@ -1234,7 +1531,7 @@ def run_setup_wizard(
             ascii_only=use_ascii,
             budget_ms=budget_ms,
         )
-    return InteractiveMatchController(
+    return InteractiveCLIApp(
         game=game,
         mode=GameMode.HUMAN_VS_AI,
         agent_x=ai_agent,

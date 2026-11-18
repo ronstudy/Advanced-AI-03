@@ -1,13 +1,17 @@
-"""Unit and smoke tests for Task T4.1 Interactive Game Controller and Rich CLI."""
+"""Unit and smoke tests for Task T5.1 Rich CLI, Theme, Layout, and Interactive Controller."""
 
 from __future__ import annotations
 
 import ast
+import importlib.util
 import io
 from pathlib import Path
+from types import ModuleType
 
 import pytest
+from rich import box
 from rich.console import Console
+from rich.layout import Layout
 
 from ttt_ai import (
     AlphaBetaAgent,
@@ -16,27 +20,60 @@ from ttt_ai import (
     ExtendedTicTacToe,
     GameMode,
     HybridMCTSAgent,
+    InteractiveCLIApp,
     InteractiveMatchController,
+    MatchTurnRecord,
     PolicyNetworkAgent,
     RandomAgent,
     RuleBasedAgent,
     create_agent_for_cli,
+    get_available_agent_levels,
     parse_user_input,
     run_setup_wizard,
 )
 from ttt_ai.engine.exceptions import IllegalMoveError, InvalidConfigError
 from ttt_ai.engine.rules import Player
 from ttt_ai.ui import (
+    ASCII_FALLBACK_CHARS,
+    HEATMAP_HIGH_STYLE,
+    HEATMAP_LOW_STYLE,
+    HEATMAP_MED_STYLE,
+    HEATMAP_OCCUPIED_STYLE,
+    HEATMAP_TOP1_STYLE,
+    UNICODE_CHARS,
+    build_board_panel,
+    build_dashboard_layout,
     build_dashboard_panel,
     build_heatmap_panel,
+    build_telemetry_panel,
+    classify_heatmap_tier,
     format_extended_board_ascii,
+    format_latency_style,
+    get_box_style,
+    get_symbol_table,
+    should_use_ascii,
+    style_for_heatmap_tier,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CKPT_DIR = PROJECT_ROOT / "checkpoints"
 
 
-def _make_memory_console(ascii_only: bool = True) -> tuple[Console, io.StringIO]:
+def _load_play_script() -> ModuleType:
+    """Load `scripts/play.py` dynamically for CLI argument parsing tests."""
+    script_path = PROJECT_ROOT / "scripts" / "play.py"
+    spec = importlib.util.spec_from_file_location("ttt_play_script", script_path)
+    assert spec is not None and spec.loader is not None
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _make_memory_console(
+    ascii_only: bool = True,
+    *,
+    height: int | None = None,
+) -> tuple[Console, io.StringIO]:
     """Create a Rich Console backed by an in-memory UTF-8 StringIO buffer."""
     buf = io.StringIO()
     console = Console(
@@ -44,6 +81,7 @@ def _make_memory_console(ascii_only: bool = True) -> tuple[Console, io.StringIO]
         force_terminal=False,
         color_system=None,
         width=120,
+        height=height,
         safe_box=ascii_only,
         highlight=False,
     )
@@ -338,3 +376,286 @@ class TestInteractiveMatchControllerLoops:
                     assert node.attr not in forbidden, (
                         f"Forbidden private attribute {node.attr} in {path}"
                     )
+
+    def test_ui_modules_do_not_use_bare_print(self) -> None:
+        ui_dir = PROJECT_ROOT / "src" / "ttt_ai" / "ui"
+        for path in sorted(ui_dir.glob("*.py")):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                    assert node.func.id != "print", f"Forbidden bare print() in {path}"
+
+
+class TestRichThemeLayoutAndAllAgentHeatmaps:
+    """Verify theme palette, ASCII fallbacks, 48/52 Layout, and Levels 1-7 heatmaps."""
+
+    def test_theme_heatmap_tiers_latency_styles_and_ascii_fallback(self) -> None:
+        assert InteractiveCLIApp is InteractiveMatchController
+        assert "bright_yellow" in HEATMAP_TOP1_STYLE
+        assert "green" in HEATMAP_HIGH_STYLE
+        assert "yellow" in HEATMAP_MED_STYLE
+        assert "dim white" in HEATMAP_LOW_STYLE
+
+        assert style_for_heatmap_tier(0) == HEATMAP_OCCUPIED_STYLE
+        assert style_for_heatmap_tier(1) == HEATMAP_LOW_STYLE
+        assert style_for_heatmap_tier(2) == HEATMAP_MED_STYLE
+        assert style_for_heatmap_tier(3) == HEATMAP_HIGH_STYLE
+        assert style_for_heatmap_tier(4) == HEATMAP_TOP1_STYLE
+        with pytest.raises(InvalidConfigError):
+            style_for_heatmap_tier(5)
+
+        assert classify_heatmap_tier(0.9, 0.0, 1.0, is_top1=True) == 4
+        assert classify_heatmap_tier(0.75, 0.0, 1.0, is_top1=False) == 3
+        assert classify_heatmap_tier(0.40, 0.0, 1.0, is_top1=False) == 2
+        assert classify_heatmap_tier(0.10, 0.0, 1.0, is_top1=False) == 1
+        assert classify_heatmap_tier(0.25, 0.25, 0.25, is_top1=False) == 2
+
+        assert format_latency_style(10.0, budget_ms=50.0) == "bold green"
+        assert format_latency_style(45.0, budget_ms=50.0) == "bold yellow"
+        assert format_latency_style(55.0, budget_ms=50.0) == "bold red"
+
+        assert get_box_style(ascii_only=False) is box.ROUNDED
+        assert get_box_style(ascii_only=True) is box.ASCII
+        assert should_use_ascii(force_ascii=True) is True
+        assert get_symbol_table(ascii_only=True) == ASCII_FALLBACK_CHARS
+        assert get_symbol_table(ascii_only=False) == UNICODE_CHARS
+
+    def test_dashboard_layout_48_52_split_and_rendering(self) -> None:
+        cfg = BoardConfig(4, 4, 4)
+        agent_l7 = create_agent_for_cli(
+            7,
+            cfg,
+            seed=42,
+            n_simulations=20,
+            checkpoints_dir=CKPT_DIR,
+        )
+        game = ExtendedTicTacToe(4, 4, 4)
+        game.step(5)
+        dec = agent_l7.select_action(game)
+        row, col = divmod(dec.action, game.cols)
+        turn_rec = MatchTurnRecord(
+            turn_index=1,
+            player=Player.O,
+            action=dec.action,
+            row=row,
+            col=col,
+            latency_ms=dec.latency_ms,
+            agent_name=agent_l7.name,
+            decision=dec,
+            agent_level=7,
+        )
+
+        layout = build_dashboard_layout(
+            game,
+            mode=GameMode.HUMAN_VS_AI,
+            actor_x_name="Human_X",
+            actor_o_name=agent_l7.name,
+            turn_records=[turn_rec],
+            status_message="Ready for next move.",
+            budget_ms=50.0,
+            ascii_only=True,
+        )
+        assert isinstance(layout, Layout)
+        assert layout["left"].ratio == 48
+        assert layout["right"].ratio == 52
+
+        console, buf = _make_memory_console(ascii_only=True, height=36)
+        console.print(layout)
+        rendered = buf.getvalue()
+        assert "GAME BOARD" in rendered
+        assert "AI TELEMETRY" in rendered
+        assert "ACTION HEATMAP & TOP-5 MOVES" in rendered
+        assert "visit=" in rendered
+        assert "prior=" in rendered
+        assert "HISTORY & CONTROLS" in rendered
+
+    def test_heatmap_panel_all_seven_agent_levels(self) -> None:
+        cfg = BoardConfig(4, 4, 4)
+        game = ExtendedTicTacToe(4, 4, 4)
+        game.step(5)
+        game.step(10)
+
+        for level in range(1, 8):
+            agent = create_agent_for_cli(
+                level,
+                cfg,
+                seed=42,
+                time_budget_ms=50.0,
+                n_simulations=20,
+                checkpoints_dir=CKPT_DIR,
+            )
+            dec = agent.select_action(game)
+            panel = build_heatmap_panel(
+                game,
+                dec,
+                agent_level=level,
+                ascii_only=True,
+            )
+            tel_panel = build_telemetry_panel(
+                MatchTurnRecord(
+                    turn_index=3,
+                    player=Player.X,
+                    action=dec.action,
+                    row=dec.action // 4,
+                    col=dec.action % 4,
+                    latency_ms=dec.latency_ms,
+                    agent_name=agent.name,
+                    decision=dec,
+                    agent_level=level,
+                ),
+                budget_ms=50.0,
+                ascii_only=True,
+            )
+            console, buf = _make_memory_console(ascii_only=True)
+            console.print(tel_panel)
+            console.print(panel)
+            out = buf.getvalue()
+            assert "Top-5 Moves" in out
+            assert f"[Lv.{level}]" in out
+            if level in (1, 5):
+                assert "prob=" in out
+            elif level in (2, 3):
+                assert "score=" in out
+            elif level == 4:
+                assert "visit=" in out
+            elif level == 6:
+                assert "Q=" in out
+            elif level == 7:
+                assert "visit=" in out
+                assert "prior=" in out
+
+    def test_board_panel_last_move_and_winning_line_markers(self) -> None:
+        game = ExtendedTicTacToe(3, 3, 3)
+        for move in (0, 3, 1, 4):
+            game.step(move)
+        console_mid, buf_mid = _make_memory_console(ascii_only=True)
+        console_mid.print(build_board_panel(game, ascii_only=True))
+        assert "[O]" in buf_mid.getvalue()
+
+        game.step(2)  # Player X wins top row (0, 1, 2)
+        console_win, buf_win = _make_memory_console(ascii_only=True)
+        console_win.print(build_board_panel(game, ascii_only=True))
+        win_out = buf_win.getvalue()
+        assert "[X]" in win_out
+        assert "*X*" in win_out
+
+    def test_available_levels_and_wizard_filter_learned_checkpoints(self) -> None:
+        avail_4x4_k4 = get_available_agent_levels(BoardConfig(4, 4, 4), CKPT_DIR)
+        assert sorted(avail_4x4_k4.keys()) == [1, 2, 3, 4, 5, 6, 7]
+
+        avail_4x4_k3 = get_available_agent_levels(BoardConfig(4, 4, 3), CKPT_DIR)
+        assert sorted(avail_4x4_k3.keys()) == [1, 2, 3, 4, 6]
+
+        avail_5x5_k4 = get_available_agent_levels(BoardConfig(5, 5, 4), CKPT_DIR)
+        assert sorted(avail_5x5_k4.keys()) == [1, 2, 3, 4]
+
+        console, buf = _make_memory_console(ascii_only=True)
+        wizard_inputs = iter([
+            "4",   # Preset 4: 5x5 K=4 (no checkpoints!)
+            "1",   # Human vs AI
+            "50",  # Budget
+            "42",  # Seed
+            "x",   # Play X
+            "2",   # Level 2
+        ])
+        ctrl = run_setup_wizard(
+            input_fn=lambda _: next(wizard_inputs),
+            console=console,
+            checkpoints_dir=CKPT_DIR,
+            ascii_only=True,
+        )
+        assert isinstance(ctrl, InteractiveCLIApp)
+        wizard_out = buf.getvalue()
+        assert "[4] L4_MCTS" in wizard_out
+        assert "[5] L5_PolicyNet" not in wizard_out
+        assert "[7] L7_HybridMCTS" not in wizard_out
+
+    def test_undo_two_steps_when_human_is_second_and_live_autoplay(self) -> None:
+        cfg = BoardConfig(3, 3, 3)
+        agent_x = create_agent_for_cli(1, cfg, seed=7)
+        console, buf = _make_memory_console(ascii_only=True)
+        inputs = iter([
+            "u",   # Warning: no completed human move yet when Human O hasn't moved
+            "4",   # Human O plays cell 4 -> AI X replies
+            "u",   # Reverts AI X + Human O -> back to move_count == 1
+            "q",   # Quit
+        ])
+        ctrl = InteractiveCLIApp(
+            game=ExtendedTicTacToe(3, 3, 3),
+            mode=GameMode.HUMAN_VS_AI,
+            agent_x=agent_x,
+            agent_o=None,
+            input_fn=lambda _: next(inputs),
+            console=console,
+            ascii_only=True,
+        )
+        summary = ctrl.run_match()
+        assert summary.quit_early is True
+        assert summary.move_count == 1
+        assert "No completed human move available to undo." in buf.getvalue()
+
+        # Verify Live + Layout branch in AI vs AI mode completes cleanly.
+        live_console, live_buf = _make_memory_console(ascii_only=True, height=36)
+        live_ctrl = InteractiveCLIApp(
+            game=ExtendedTicTacToe(3, 3, 3),
+            mode=GameMode.AI_VS_AI,
+            agent_x=create_agent_for_cli(2, cfg, seed=10),
+            agent_o=create_agent_for_cli(2, cfg, seed=11),
+            console=live_console,
+            step_delay_ms=0.0,
+            ascii_only=True,
+            use_live=True,
+            use_layout=True,
+        )
+        live_summary = live_ctrl.run_match()
+        assert not live_summary.quit_early
+        assert live_summary.is_draw is True
+        assert "GAME BOARD" in live_buf.getvalue()
+
+    def test_play_entrypoint_cli_flags_and_controller_builder(self) -> None:
+        play_mod = _load_play_script()
+        args = play_mod._parse_args(
+            [
+                "--board",
+                "4x4_k4",
+                "--mode",
+                "ai_vs_ai",
+                "--agent-x",
+                "7",
+                "--agent-o",
+                "3",
+                "--budget-ms",
+                "25",
+                "--step-delay",
+                "150",
+                "--n-simulations",
+                "15",
+                "--seed",
+                "99",
+                "--ascii",
+            ]
+        )
+        assert args.board == "4x4_k4"
+        assert args.mode == "ai_vs_ai"
+        assert args.agent_x == "7"
+        assert args.agent_o == "3"
+        assert args.budget_ms == 25.0
+        assert args.step_delay_ms == 150.0
+
+        console, _ = _make_memory_console(ascii_only=True)
+        ctrl = play_mod.build_controller_from_args(args, console=console, ascii_only=True)
+        assert isinstance(ctrl, InteractiveCLIApp)
+        assert ctrl.mode is GameMode.AI_VS_AI
+        ctrl._step_delay_ms = 0.0
+        summary = ctrl.run_match()
+        assert summary.move_count >= 7
+
+        # Verify --agent-x in human_vs_ai automatically puts Human on O.
+        hv_args = play_mod._parse_args(
+            ["--board", "3x3_k3", "--mode", "human_vs_ai", "--agent-x", "2"]
+        )
+        hv_ctrl = play_mod.build_controller_from_args(
+            hv_args, console=console, ascii_only=True
+        )
+        assert hv_ctrl._agent_x is not None
+        assert hv_ctrl._agent_o is None

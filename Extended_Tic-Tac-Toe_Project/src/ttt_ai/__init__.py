@@ -78,13 +78,18 @@ from ttt_ai.training import (
     verify_checkpoint,
 )
 from ttt_ai.ui import (
+    ASCII_FALLBACK_CHARS,
     DifficultyPreset,
     GameMode,
+    InteractiveCLIApp,
     InteractiveMatchController,
     MatchResultSummary,
     MatchTurnRecord,
     ParsedUserCommand,
+    build_dashboard_layout,
     create_agent_for_cli,
+    get_available_agent_levels,
+    get_symbol_table,
     parse_user_input,
     run_setup_wizard,
 )
@@ -93,6 +98,7 @@ __version__ = "0.1.0"
 
 __all__ = [
     "__version__",
+    "ASCII_FALLBACK_CHARS",
     "AblationRunResult",
     "AgentDecision",
     "AgentPerformanceMetrics",
@@ -114,6 +120,7 @@ __all__ = [
     "GameMode",
     "HeadToHeadMetrics",
     "HybridMCTSAgent",
+    "InteractiveCLIApp",
     "InteractiveMatchController",
     "MCTSAgent",
     "MatchRecord",
@@ -140,6 +147,7 @@ __all__ = [
     "ValueNet",
     "bootstrap_ci",
     "bootstrap_diff_ci",
+    "build_dashboard_layout",
     "compute_agent_metrics",
     "compute_head_to_head_metrics",
     "compute_seat_advantage",
@@ -149,6 +157,8 @@ __all__ = [
     "export_summary_csv",
     "format_ablation_suite_markdown",
     "format_summary_markdown",
+    "get_available_agent_levels",
+    "get_symbol_table",
     "load_ablation_result",
     "load_game_config",
     "load_pickle_checkpoint",

@@ -22,10 +22,36 @@ STYLE_ERROR: str = "bold red"
 STYLE_INFO: str = "cyan"
 
 HEATMAP_TOP1_STYLE: str = "bold black on bright_yellow"
-HEATMAP_HIGH_STYLE: str = "bold bright_green"
+HEATMAP_HIGH_STYLE: str = "bold green"
 HEATMAP_MED_STYLE: str = "yellow"
 HEATMAP_LOW_STYLE: str = "dim white"
 HEATMAP_OCCUPIED_STYLE: str = "dim grey42"
+
+UNICODE_CHARS: dict[str, str] = {
+    "arrow_right": "→",
+    "dash": "—",
+    "bullet": "•",
+    "check": "✓",
+    "cross": "✗",
+    "last_prefix": "[",
+    "last_suffix": "]",
+    "win_prefix": "*",
+    "win_suffix": "*",
+    "empty_dot": "·",
+}
+
+ASCII_FALLBACK_CHARS: dict[str, str] = {
+    "arrow_right": "->",
+    "dash": "--",
+    "bullet": "*",
+    "check": "[OK]",
+    "cross": "[X]",
+    "last_prefix": "[",
+    "last_suffix": "]",
+    "win_prefix": "*",
+    "win_suffix": "*",
+    "empty_dot": ".",
+}
 
 _HEATMAP_TIER_STYLES: dict[int, str] = {
     0: HEATMAP_OCCUPIED_STYLE,
@@ -73,6 +99,19 @@ def get_box_style(ascii_only: bool = False) -> box.Box:
         A :class:`rich.box.Box` instance.
     """
     return box.ASCII if ascii_only else box.ROUNDED
+
+
+def get_symbol_table(ascii_only: bool = False) -> dict[str, str]:
+    """Return UI glyph table using ASCII fallback characters or Unicode symbols.
+
+    Args:
+        ascii_only: When ``True``, returns pure 7-bit ASCII symbols suitable for
+            legacy Windows CMD/codepage terminals.
+
+    Returns:
+        Fresh dictionary mapping logical glyph keys to display characters.
+    """
+    return dict(ASCII_FALLBACK_CHARS if ascii_only else UNICODE_CHARS)
 
 
 def format_latency_style(
