@@ -49,6 +49,15 @@ from ttt_ai.benchmark.tournament import (
     run_official_tournament_suite,
     verify_tournament_log_integrity,
 )
+from ttt_ai.benchmark.visualizer import (
+    generate_all_visualizations_and_reports,
+    generate_summary_reports,
+    plot_fig1_head_to_head,
+    plot_fig2_latency_and_nodes,
+    plot_fig3_ablation_rq1,
+    plot_fig4_ablation_rq2,
+    plot_fig5_ablation_rq3,
+)
 
 __all__: list[str] = [
     "AblationRunResult",
@@ -75,12 +84,19 @@ __all__: list[str] = [
     "export_summary_csv",
     "format_ablation_suite_markdown",
     "format_summary_markdown",
+    "generate_all_visualizations_and_reports",
+    "generate_summary_reports",
     "instantiate_agent",
     "load_ablation_result",
     "load_tournament_config",
     "load_tournament_log",
     "parse_board_preset",
     "play_single_match",
+    "plot_fig1_head_to_head",
+    "plot_fig2_latency_and_nodes",
+    "plot_fig3_ablation_rq1",
+    "plot_fig4_ablation_rq2",
+    "plot_fig5_ablation_rq3",
     "run_ablation_alpha_beta",
     "run_ablation_rq1_hybrid_mcts",
     "run_ablation_rq2_seat_advantage",
