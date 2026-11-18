@@ -2,6 +2,17 @@
 
 from __future__ import annotations
 
+from ttt_ai.benchmark.ablations import (
+    AblationRunResult,
+    export_ablation_suite_reports,
+    format_ablation_suite_markdown,
+    load_ablation_result,
+    run_ablation_alpha_beta,
+    run_ablation_rq1_hybrid_mcts,
+    run_ablation_rq2_seat_advantage,
+    run_ablation_rq3_generalization,
+    run_all_ablations,
+)
 from ttt_ai.benchmark.metrics import (
     AgentPerformanceMetrics,
     HeadToHeadMetrics,
@@ -40,6 +51,7 @@ from ttt_ai.benchmark.tournament import (
 )
 
 __all__: list[str] = [
+    "AblationRunResult",
     "AgentPerformanceMetrics",
     "AgentSpec",
     "BudgetModeConfig",
@@ -59,13 +71,21 @@ __all__: list[str] = [
     "compute_agent_metrics",
     "compute_head_to_head_metrics",
     "compute_seat_advantage",
+    "export_ablation_suite_reports",
     "export_summary_csv",
+    "format_ablation_suite_markdown",
     "format_summary_markdown",
     "instantiate_agent",
+    "load_ablation_result",
     "load_tournament_config",
     "load_tournament_log",
     "parse_board_preset",
     "play_single_match",
+    "run_ablation_alpha_beta",
+    "run_ablation_rq1_hybrid_mcts",
+    "run_ablation_rq2_seat_advantage",
+    "run_ablation_rq3_generalization",
+    "run_all_ablations",
     "run_official_tournament_suite",
     "save_summary_markdown",
     "summarize_tournament_log",
