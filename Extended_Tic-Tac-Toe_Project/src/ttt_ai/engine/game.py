@@ -150,7 +150,7 @@ class ExtendedTicTacToe:
         """
         if self._terminal:
             return []
-        return [int(idx) for idx in np.flatnonzero(self._board == EMPTY)]
+        return np.flatnonzero(self._board == EMPTY).tolist()
 
     def step(self, action: int) -> tuple[np.ndarray, float, bool, dict[str, Any]]:
         """Apply a move for `current_player` and advance the game state.

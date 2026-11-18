@@ -1,15 +1,18 @@
-"""Paired Round-Robin tournament runner with crash-safe JSONL logging and resume.
+"""Paired Round-Robin tournament runner, integrity verification, and official suite orchestration.
 
-Implements Task T4.1 per ``Planning/ARCHITECTURE.md`` Section 5.3 and
+Implements Tasks T4.1 & T4.3 per ``Planning/ARCHITECTURE.md`` Section 5.3 and
 ``Planning/RULES.md`` Section 3:
 - Balanced 50% ``X`` / 50% ``O`` paired scheduling on identical match seeds.
 - Line-buffered JSONL output with a ``type="meta"`` environment/config header
   followed by per-match ``type="match"`` records containing full move telemetry.
 - Reproducible seeding and resumable execution from partial JSONL logs.
+- Independent move-by-move log replay verification (`verify_tournament_log_integrity`)
+  and full T4.3 suite execution with automated CSV/Markdown reporting.
 """
 
 from __future__ import annotations
 
+import csv
 import ctypes
 import json
 import logging
@@ -21,6 +24,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import torch
+
 from ttt_ai.agents.base import BaseAgent, _is_finite_real, _is_strict_int
 from ttt_ai.agents.hybrid_mcts_agent import HybridMCTSAgent
 from ttt_ai.agents.mcts_agent import MCTSAgent
@@ -29,13 +34,52 @@ from ttt_ai.agents.policy_agent import PolicyNetworkAgent, ValueGreedyAgent
 from ttt_ai.agents.random_agent import RandomAgent
 from ttt_ai.agents.rl_agent import DQNAgent, TabularQAgent
 from ttt_ai.agents.rule_based_agent import RuleBasedAgent
-from ttt_ai.config import BoardConfig, load_yaml_dict
-from ttt_ai.engine.exceptions import InvalidConfigError
+from ttt_ai.config import BoardConfig, load_yaml_dict, seed_everything
+from ttt_ai.engine.exceptions import IllegalMoveError, InvalidConfigError
 from ttt_ai.engine.game import ExtendedTicTacToe
 from ttt_ai.engine.rules import PLAYER_X, Player
 from ttt_ai.training.checkpoint_io import collect_hardware_info
 
 logger = logging.getLogger(__name__)
+
+_BOARD_PRESETS: dict[str, tuple[int, int, int]] = {
+    "3x3_k3": (3, 3, 3),
+    "4x4_k3": (4, 4, 3),
+    "4x4_k4": (4, 4, 4),
+    "5x5_k4": (5, 5, 4),
+}
+
+DEFAULT_OFFICIAL_TOURNAMENT_TARGETS: tuple[tuple[str, str], ...] = (
+    ("4x4_k4", "fixed_10ms"),
+    ("4x4_k4", "fixed_50ms"),
+    ("4x4_k4", "default"),
+    ("3x3_k3", "default"),
+)
+
+
+def parse_board_preset(board_tag: str) -> BoardConfig:
+    """Convert a standardized CLI/config board tag into a validated :class:`BoardConfig`.
+
+    Args:
+        board_tag: Preset tag such as ``"4x4_k4"``, ``"4x4_k3"``, ``"3x3_k3"``, or ``"5x5_k4"``.
+
+    Returns:
+        Validated :class:`BoardConfig`.
+
+    Raises:
+        InvalidConfigError: If `board_tag` is unknown.
+    """
+    if not isinstance(board_tag, str):
+        raise InvalidConfigError(
+            f"board_tag must be a string, got {type(board_tag).__name__}."
+        )
+    key = board_tag.strip().lower()
+    if key not in _BOARD_PRESETS:
+        raise InvalidConfigError(
+            f"Unknown board preset {board_tag!r}. Choose from {sorted(_BOARD_PRESETS.keys())}."
+        )
+    rows, cols, win_k = _BOARD_PRESETS[key]
+    return BoardConfig(rows=rows, cols=cols, win_k=win_k)
 
 _AGENT_REGISTRY: dict[str, type[BaseAgent]] = {
     "RandomAgent": RandomAgent,
@@ -903,31 +947,38 @@ class TournamentRunner:
         )
         schedule = self._iter_scheduled_matches()
 
-        with out_path.open(file_mode, encoding="utf-8") as handle:
-            if file_mode == "w":
-                meta_header = self._build_meta_header(roster)
-                handle.write(json.dumps(meta_header) + "\n")
-                handle.flush()
+        # Restrict PyTorch to 1 intra-op thread during tournament evaluation to eliminate
+        # multi-thread barrier overhead on tiny (1, 1, M, N) tensors and keep latency clean.
+        previous_threads = torch.get_num_threads()
+        torch.set_num_threads(1)
+        try:
+            with out_path.open(file_mode, encoding="utf-8") as handle:
+                if file_mode == "w":
+                    meta_header = self._build_meta_header(roster)
+                    handle.write(json.dumps(meta_header) + "\n")
+                    handle.flush()
 
-            executed_now = 0
-            for match_id, id_x, id_o, pair_id, game_in_pair, match_seed in schedule:
-                if match_id in completed_ids:
-                    continue
-                record = play_single_match(
-                    game=game,
-                    agent_x=roster[id_x],
-                    agent_o=roster[id_o],
-                    match_id=match_id,
-                    pair_id=pair_id,
-                    game_in_pair=game_in_pair,
-                    seed=match_seed,
-                    budget_mode=self._budget_mode,
-                    agent_x_id=id_x,
-                    agent_o_id=id_o,
-                )
-                handle.write(json.dumps(record.to_dict()) + "\n")
-                handle.flush()
-                executed_now += 1
+                executed_now = 0
+                for match_id, id_x, id_o, pair_id, game_in_pair, match_seed in schedule:
+                    if match_id in completed_ids:
+                        continue
+                    record = play_single_match(
+                        game=game,
+                        agent_x=roster[id_x],
+                        agent_o=roster[id_o],
+                        match_id=match_id,
+                        pair_id=pair_id,
+                        game_in_pair=game_in_pair,
+                        seed=match_seed,
+                        budget_mode=self._budget_mode,
+                        agent_x_id=id_x,
+                        agent_o_id=id_o,
+                    )
+                    handle.write(json.dumps(record.to_dict()) + "\n")
+                    handle.flush()
+                    executed_now += 1
+        finally:
+            torch.set_num_threads(previous_threads)
 
         logger.info(
             "Tournament '%s' complete: wrote %d new matches (total scheduled=%d) -> %s",
@@ -937,3 +988,472 @@ class TournamentRunner:
             out_path,
         )
         return out_path
+
+
+@dataclass(frozen=True, slots=True)
+class TournamentIntegrityReport:
+    """Audit report verifying completeness, 50/50 X/O balance, and move legality."""
+
+    log_path: str
+    tournament_name: str
+    board_config: dict[str, int]
+    budget_mode: str
+    participants: list[str]
+    n_pairs: int
+    total_matches: int
+    expected_matches: int
+    duplicate_match_ids: list[str]
+    unbalanced_matchups: list[str]
+    corrupt_or_illegal_matches: list[str]
+    is_valid: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize integrity audit results to a JSON-compatible dictionary."""
+        return {
+            "log_path": self.log_path,
+            "tournament_name": self.tournament_name,
+            "board_config": dict(self.board_config),
+            "budget_mode": self.budget_mode,
+            "participants": list(self.participants),
+            "n_pairs": self.n_pairs,
+            "total_matches": self.total_matches,
+            "expected_matches": self.expected_matches,
+            "duplicate_match_ids": list(self.duplicate_match_ids),
+            "unbalanced_matchups": list(self.unbalanced_matchups),
+            "corrupt_or_illegal_matches": list(self.corrupt_or_illegal_matches),
+            "is_valid": self.is_valid,
+        }
+
+
+def _replay_match_record(game: ExtendedTicTacToe, rec: MatchRecord) -> str | None:
+    """Replay all logged moves on `game` and return an error reason if inconsistent."""
+    if rec.num_moves != len(rec.moves):
+        return f"{rec.match_id}: num_moves={rec.num_moves} != len(moves)={len(rec.moves)}"
+
+    expected_x_moves = (len(rec.moves) + 1) // 2
+    expected_o_moves = len(rec.moves) // 2
+    if (
+        len(rec.latencies_x_ms) != expected_x_moves
+        or len(rec.latencies_o_ms) != expected_o_moves
+    ):
+        return (
+            f"{rec.match_id}: seat latency lengths ({len(rec.latencies_x_ms)}, "
+            f"{len(rec.latencies_o_ms)}) mismatch move counts ({expected_x_moves}, "
+            f"{expected_o_moves})"
+        )
+
+    game.reset()
+    for step_idx, move_entry in enumerate(rec.moves):
+        action = int(move_entry[0])
+        try:
+            game.step(action)
+        except IllegalMoveError as exc:
+            return f"{rec.match_id}: IllegalMoveError at ply {step_idx}: {exc}"
+
+    if not game.is_terminal():
+        return f"{rec.match_id}: game did not reach terminal state after {len(rec.moves)} moves"
+
+    actual_winner = int(game.winner) if game.winner is not None else 0
+    if actual_winner != rec.winner:
+        return f"{rec.match_id}: winner={rec.winner} mismatches replayed winner={actual_winner}"
+
+    exp_sx = 1.0 if actual_winner == PLAYER_X else (0.5 if actual_winner == 0 else 0.0)
+    exp_so = 1.0 - exp_sx
+    if abs(rec.score_x - exp_sx) > 1e-6 or abs(rec.score_o - exp_so) > 1e-6:
+        return (
+            f"{rec.match_id}: scores ({rec.score_x}, {rec.score_o}) mismatch "
+            f"expected ({exp_sx}, {exp_so})"
+        )
+    return None
+
+
+def verify_tournament_log_integrity(
+    log_path: str | Path,
+    *,
+    expected_agents: Sequence[str] | None = None,
+    expected_n_pairs: int | None = None,
+    replay_moves: bool = True,
+) -> TournamentIntegrityReport:
+    """Verify a tournament JSONL log for completeness, 50/50 balance, and zero illegal moves.
+
+    Args:
+        log_path: Path to the tournament ``.jsonl`` file.
+        expected_agents: Optional expected agent identifier roster.
+        expected_n_pairs: Optional expected number of paired seed rounds per matchup.
+        replay_moves: When ``True``, replays every move of every match through
+            :class:`ExtendedTicTacToe` to prove zero ``IllegalMoveError`` and exact
+            winner/score consistency.
+
+    Returns:
+        :class:`TournamentIntegrityReport` summarizing all checks.
+
+    Raises:
+        FileNotFoundError: If `log_path` does not exist.
+        InvalidConfigError: If the JSONL header lacks valid board metadata.
+    """
+    meta_header, records = load_tournament_log(log_path)
+    raw_board = meta_header.get("board_config")
+    if not isinstance(raw_board, Mapping):
+        raise InvalidConfigError(f"Tournament log '{log_path}' meta lacks valid board_config.")
+    board_cfg = BoardConfig.from_dict(raw_board)
+    board_dict = board_cfg.to_dict()
+    budget_mode = str(meta_header.get("budget_mode", ""))
+    tournament_name = str(meta_header.get("tournament_name", ""))
+
+    raw_agents = meta_header.get("agents")
+    meta_agents = list(raw_agents.keys()) if isinstance(raw_agents, Mapping) else []
+    record_agents = sorted({rec.agent_x for rec in records} | {rec.agent_o for rec in records})
+    participants = meta_agents if meta_agents else record_agents
+
+    resolved_n_pairs = (
+        int(expected_n_pairs)
+        if expected_n_pairs is not None
+        else int(meta_header.get("n_pairs", 0))
+    )
+    num_agents = len(participants)
+    expected_matches = (
+        num_agents * (num_agents - 1) * resolved_n_pairs
+        if (num_agents >= 2 and resolved_n_pairs >= 1)
+        else 0
+    )
+
+    seen_ids: set[str] = set()
+    duplicate_match_ids: list[str] = []
+    unbalanced_matchups: list[str] = []
+    corrupt_or_illegal_matches: list[str] = []
+
+    if expected_agents is not None and set(participants) != set(expected_agents):
+        unbalanced_matchups.append(
+            f"participant_mismatch: expected={sorted(expected_agents)}, "
+            f"actual={sorted(participants)}"
+        )
+
+    directed_pairs: dict[tuple[str, str], dict[int, int]] = {}
+    replay_game = ExtendedTicTacToe(
+        rows=board_cfg.rows,
+        cols=board_cfg.cols,
+        win_k=board_cfg.win_k,
+    )
+
+    for rec in records:
+        if rec.match_id in seen_ids:
+            duplicate_match_ids.append(rec.match_id)
+        seen_ids.add(rec.match_id)
+
+        if rec.board_config != board_dict or rec.budget_mode != budget_mode:
+            corrupt_or_illegal_matches.append(
+                f"{rec.match_id}: metadata mismatch (board={rec.board_config}, "
+                f"mode={rec.budget_mode!r})"
+            )
+
+        directed_pairs.setdefault((rec.agent_x, rec.agent_o), {})[rec.pair_id] = rec.seed
+
+        if replay_moves:
+            replay_err = _replay_match_record(replay_game, rec)
+            if replay_err is not None:
+                corrupt_or_illegal_matches.append(replay_err)
+
+    for idx_a in range(num_agents):
+        agent_a = participants[idx_a]
+        for idx_b in range(idx_a + 1, num_agents):
+            agent_b = participants[idx_b]
+            ab_seeds = directed_pairs.get((agent_a, agent_b), {})
+            ba_seeds = directed_pairs.get((agent_b, agent_a), {})
+            if len(ab_seeds) != resolved_n_pairs or len(ba_seeds) != resolved_n_pairs:
+                unbalanced_matchups.append(
+                    f"{agent_a} vs {agent_b}: counts=({len(ab_seeds)}, {len(ba_seeds)}), "
+                    f"expected=({resolved_n_pairs}, {resolved_n_pairs})"
+                )
+            elif ab_seeds != ba_seeds:
+                unbalanced_matchups.append(
+                    f"{agent_a} vs {agent_b}: paired X/O seeds or pair_ids do not align"
+                )
+
+    is_valid = (
+        expected_matches > 0
+        and len(records) == expected_matches
+        and not duplicate_match_ids
+        and not unbalanced_matchups
+        and not corrupt_or_illegal_matches
+    )
+    return TournamentIntegrityReport(
+        log_path=str(Path(log_path)),
+        tournament_name=tournament_name,
+        board_config=board_dict,
+        budget_mode=budget_mode,
+        participants=participants,
+        n_pairs=resolved_n_pairs,
+        total_matches=len(records),
+        expected_matches=expected_matches,
+        duplicate_match_ids=duplicate_match_ids,
+        unbalanced_matchups=unbalanced_matchups,
+        corrupt_or_illegal_matches=corrupt_or_illegal_matches,
+        is_valid=is_valid,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class OfficialTournamentSuiteResult:
+    """Outputs and verification status produced by :func:`run_official_tournament_suite`."""
+
+    log_paths: dict[str, Path]
+    integrity_reports: dict[str, TournamentIntegrityReport]
+    summaries: dict[str, Any]
+    suite_csv_path: Path | None
+    suite_markdown_path: Path | None
+
+
+def _export_suite_consolidated_csv(
+    ordered_runs: Sequence[tuple[str, str, Any]],
+    output_csv_path: str | Path,
+) -> Path:
+    """Write a unified CSV combining ranked agent metrics across all suite tournaments."""
+    path = Path(output_csv_path).resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = [
+        "board",
+        "budget_mode",
+        "total_tournament_matches",
+        "rank",
+        "agent_id",
+        "total_games",
+        "wins",
+        "draws",
+        "losses",
+        "win_rate",
+        "win_rate_ci_lower",
+        "win_rate_ci_upper",
+        "score",
+        "score_ci_lower",
+        "score_ci_upper",
+        "score_x",
+        "score_o",
+        "delta_score",
+        "delta_score_ci_lower",
+        "delta_score_ci_upper",
+        "mean_latency_ms",
+        "median_latency_ms",
+        "p95_latency_ms",
+        "max_latency_ms",
+        "avg_nodes_visited",
+        "avg_simulations",
+        "avg_depth",
+        "total_moves",
+    ]
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        for board_tag, mode_name, summary in ordered_runs:
+            for rank, m in enumerate(summary.get_rankings(), start=1):
+                writer.writerow(
+                    {
+                        "board": board_tag,
+                        "budget_mode": mode_name,
+                        "total_tournament_matches": summary.total_matches,
+                        "rank": rank,
+                        "agent_id": m.agent_id,
+                        "total_games": m.total_games,
+                        "wins": m.wins,
+                        "draws": m.draws,
+                        "losses": m.losses,
+                        "win_rate": f"{m.win_rate:.4f}",
+                        "win_rate_ci_lower": f"{m.win_rate_ci[0]:.4f}",
+                        "win_rate_ci_upper": f"{m.win_rate_ci[1]:.4f}",
+                        "score": f"{m.score:.4f}",
+                        "score_ci_lower": f"{m.score_ci[0]:.4f}",
+                        "score_ci_upper": f"{m.score_ci[1]:.4f}",
+                        "score_x": f"{m.score_x:.4f}",
+                        "score_o": f"{m.score_o:.4f}",
+                        "delta_score": f"{m.delta_score:.4f}",
+                        "delta_score_ci_lower": f"{m.delta_score_ci[0]:.4f}",
+                        "delta_score_ci_upper": f"{m.delta_score_ci[1]:.4f}",
+                        "mean_latency_ms": f"{m.mean_latency_ms:.4f}",
+                        "median_latency_ms": f"{m.median_latency_ms:.4f}",
+                        "p95_latency_ms": f"{m.p95_latency_ms:.4f}",
+                        "max_latency_ms": f"{m.max_latency_ms:.4f}",
+                        "avg_nodes_visited": f"{m.avg_nodes_visited:.2f}",
+                        "avg_simulations": f"{m.avg_simulations:.2f}",
+                        "avg_depth": f"{m.avg_depth:.2f}",
+                        "total_moves": m.total_moves,
+                    }
+                )
+    return path
+
+
+def _export_suite_consolidated_markdown(
+    ordered_runs: Sequence[tuple[str, str, Any]],
+    integrity_reports: Mapping[str, TournamentIntegrityReport],
+    format_summary_markdown_fn: Any,
+    output_md_path: str | Path,
+) -> Path:
+    """Write a unified Markdown report with audit status and full tables for every suite run."""
+    path = Path(output_md_path).resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines: list[str] = [
+        "# Official Paired Round-Robin Tournament Suite Summary (Task T4.3)",
+        "",
+        "## Suite Overview & Integrity Verification",
+        "",
+        "| Suite Key | Board | Budget Mode | Matches | Illegal Moves | 50/50 X/O Valid | "
+        "Top Agent (Score) | Seat ΔScore [95% CI] |",
+        "|:---|:---:|:---|---:|---:|:---:|:---|:---:|",
+    ]
+    for board_tag, mode_name, summary in ordered_runs:
+        key = f"{board_tag}_{mode_name}"
+        report = integrity_reports[key]
+        rankings = summary.get_rankings()
+        top_str = f"{rankings[0].agent_id} ({rankings[0].score:.3f})" if rankings else "N/A"
+        sa = summary.seat_advantage
+        ds_str = f"{sa.delta_score:+.3f} [{sa.delta_score_ci[0]:+.3f}, {sa.delta_score_ci[1]:+.3f}]"
+        valid_str = "PASS" if report.is_valid else "FAIL"
+        lines.append(
+            f"| `{key}` | `{board_tag}` | `{mode_name}` | {report.total_matches} | "
+            f"{len(report.corrupt_or_illegal_matches)} | {valid_str} | "
+            f"{top_str} | {ds_str} |"
+        )
+
+    for board_tag, mode_name, summary in ordered_runs:
+        lines.extend(["", "---", "", f"<!-- Suite Target: {board_tag}_{mode_name} -->", ""])
+        lines.append(format_summary_markdown_fn(summary))
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
+
+
+def run_official_tournament_suite(
+    config_path: str | Path,
+    output_dir: str | Path,
+    *,
+    reports_dir: str | Path | None = None,
+    base_dir: str | Path | None = None,
+    n_pairs_override: int | None = None,
+    seed_override: int | None = None,
+    targets: Sequence[tuple[str, str]] = DEFAULT_OFFICIAL_TOURNAMENT_TARGETS,
+    resume: bool = True,
+    n_bootstrap: int = 10000,
+) -> OfficialTournamentSuiteResult:
+    """Execute, audit, and summarize the official T4.3 Paired Round-Robin tournament suite.
+
+    Default targets cover ``4x4_k4`` across ``fixed_10ms``, ``fixed_50ms``, and ``default``
+    budgets plus the ``3x3_k3`` control tournament in ``default`` mode.
+
+    Args:
+        config_path: Path to ``configs/tournament.yaml``.
+        output_dir: Directory where ``tournament_<board>_<mode>.jsonl`` logs are saved.
+        reports_dir: Optional directory for per-tournament and suite CSV/Markdown summaries.
+        base_dir: Project root used to resolve relative checkpoint paths.
+        n_pairs_override: Optional override for ``n_pairs`` (defaults to YAML value, 100).
+        seed_override: Optional override for base seed (defaults to YAML value, 42).
+        targets: Sequence of ``(board_tag, budget_mode)`` pairs to execute.
+        resume: Resume from existing matching JSONL logs when present.
+        n_bootstrap: Bootstrap resamples for 95% confidence intervals (default 10,000).
+
+    Returns:
+        :class:`OfficialTournamentSuiteResult` holding log paths, audits, and summaries.
+
+    Raises:
+        InvalidConfigError: If configuration, mode, or log integrity verification fails.
+    """
+    from ttt_ai.benchmark.metrics import (
+        export_summary_csv,
+        format_summary_markdown,
+        save_summary_markdown,
+        summarize_tournament_log,
+    )
+
+    if not targets:
+        raise InvalidConfigError("targets must contain at least one (board_tag, budget_mode) pair.")
+
+    cfg = load_tournament_config(config_path)
+    out_root = Path(output_dir)
+    out_root.mkdir(parents=True, exist_ok=True)
+    rep_root = Path(reports_dir) if reports_dir is not None else None
+    if rep_root is not None:
+        rep_root.mkdir(parents=True, exist_ok=True)
+
+    resolved_base = (
+        Path(base_dir).resolve()
+        if base_dir is not None
+        else Path(config_path).resolve().parent.parent
+    )
+    n_pairs = int(n_pairs_override if n_pairs_override is not None else cfg.n_pairs)
+    base_seed = int(seed_override if seed_override is not None else cfg.seed)
+
+    log_paths: dict[str, Path] = {}
+    integrity_reports: dict[str, TournamentIntegrityReport] = {}
+    summaries: dict[str, Any] = {}
+    ordered_runs: list[tuple[str, str, Any]] = []
+
+    for board_tag, mode_name in targets:
+        board_cfg = parse_board_preset(board_tag)
+        if mode_name not in cfg.budget_modes:
+            raise InvalidConfigError(
+                f"Budget mode {mode_name!r} not defined in '{config_path}'. "
+                f"Available: {sorted(cfg.budget_modes.keys())}."
+            )
+        mode_cfg = cfg.budget_modes[mode_name]
+        roster = cfg.resolve_agents_for_board(board_cfg)
+        key = f"{board_cfg.name}_{mode_cfg.name}"
+
+        seed_everything(base_seed)
+        runner = TournamentRunner(
+            board_config=board_cfg,
+            agent_specs=roster,
+            n_pairs=n_pairs,
+            base_seed=base_seed,
+            budget_mode=mode_cfg.name,
+            time_budget_override_ms=mode_cfg.time_budget_ms,
+            n_simulations_override=mode_cfg.n_simulations,
+            base_dir=resolved_base,
+            tournament_name=f"{cfg.name}_{key}",
+        )
+        log_path = runner.run(out_root / f"tournament_{key}.jsonl", resume=resume)
+        audit = verify_tournament_log_integrity(
+            log_path,
+            expected_agents=[spec.agent_id for spec in roster],
+            expected_n_pairs=n_pairs,
+            replay_moves=True,
+        )
+        if not audit.is_valid:
+            raise InvalidConfigError(
+                f"Tournament integrity check failed for '{log_path}': "
+                f"duplicates={audit.duplicate_match_ids}, "
+                f"unbalanced={audit.unbalanced_matchups}, "
+                f"illegal={audit.corrupt_or_illegal_matches[:5]}."
+            )
+
+        summary = summarize_tournament_log(
+            log_path,
+            n_bootstrap=n_bootstrap,
+            seed=base_seed,
+        )
+        if rep_root is not None:
+            export_summary_csv(summary, rep_root / f"tournament_{key}_metrics.csv")
+            save_summary_markdown(summary, rep_root / f"tournament_{key}_summary.md")
+
+        log_paths[key] = log_path
+        integrity_reports[key] = audit
+        summaries[key] = summary
+        ordered_runs.append((board_cfg.name, mode_cfg.name, summary))
+
+    suite_csv: Path | None = None
+    suite_md: Path | None = None
+    if rep_root is not None:
+        suite_csv = _export_suite_consolidated_csv(
+            ordered_runs,
+            rep_root / "tournament_suite_metrics.csv",
+        )
+        suite_md = _export_suite_consolidated_markdown(
+            ordered_runs,
+            integrity_reports,
+            format_summary_markdown,
+            rep_root / "tournament_suite_summary.md",
+        )
+
+    return OfficialTournamentSuiteResult(
+        log_paths=log_paths,
+        integrity_reports=integrity_reports,
+        summaries=summaries,
+        suite_csv_path=suite_csv,
+        suite_markdown_path=suite_md,
+    )

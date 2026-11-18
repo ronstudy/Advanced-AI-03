@@ -25,6 +25,7 @@ _PLY_PENALTY: float = 0.01
 _TIE_EPS: float = 1e-12
 _TIE_WINDOW_EPS: float = 1e-9
 _DEADLINE_CHECK_MASK: int = 255  # Check perf_counter() every 256 visited nodes.
+_POWERS_OF_TEN: tuple[float, ...] = tuple(float(10**i) for i in range(16))
 
 
 def _is_strict_int(value: Any) -> bool:
@@ -87,11 +88,12 @@ def evaluate_board(
             return 0.0
         return _TERMINAL_SCORE if payoff > 0.0 else -_TERMINAL_SCORE
 
-    flat_board = [int(v) for v in game.board.reshape(-1)]
+    flat_board: list[int] = game.board.reshape(-1).tolist()
     windows = precompute_win_windows(game.rows, game.cols, game.win_k)
     opp_player = -target_player
 
     raw_score = 0.0
+    powers_len = len(_POWERS_OF_TEN)
     for window in windows:
         self_count = 0
         opp_count = 0
@@ -103,9 +105,19 @@ def evaluate_board(
                 opp_count += 1
 
         if self_count > 0 and opp_count == 0:
-            raw_score += float(10 ** (self_count - 1))
+            power_idx = self_count - 1
+            raw_score += (
+                _POWERS_OF_TEN[power_idx]
+                if power_idx < powers_len
+                else float(10**power_idx)
+            )
         elif opp_count > 0 and self_count == 0:
-            raw_score -= float(10 ** (opp_count - 1))
+            power_idx = opp_count - 1
+            raw_score -= (
+                _POWERS_OF_TEN[power_idx]
+                if power_idx < powers_len
+                else float(10**power_idx)
+            )
 
     if raw_score == 0.0:
         return 0.0
