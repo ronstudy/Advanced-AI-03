@@ -49,7 +49,6 @@
     - [2. Thực nghiệm Bài toán thỏa mãn ràng buộc (Lab 04)](#2-thực-nghiệm-bài-toán-thỏa-mãn-ràng-buộc-lab-04)
     - [3. Kiểm thử & Sanity Benchmark Đồ án Game AI (Sprint 1 & Sprint 2)](#3-kiểm-thử--sanity-benchmark-đồ-án-game-ai-sprint-1--sprint-2)
   - [📚 Nguồn Tham khảo & Kế thừa (References & Inheritance)](#-nguồn-tham-khảo--kế-thừa-references--inheritance)
-  - [👤 Tác giả & Giấy phép (Author & License)](#-tác-giả--giấy-phép-author--license)
 
 ---
 
