@@ -374,14 +374,3 @@ tests/test_search_agents.py .......................                      [100%]
 ### 3. Mã nguồn tham khảo & Khung thực hành
 - [`maze_helper.py`](Lab/lab03_localsearch_search_TruongChiLong_3123410198/maze_helper.py) và khung bài tập thực hành Lab 03 / Lab 04 của **Michael Hahsler** (Khoa Khoa học Máy tính, SMU). Toàn bộ phần thuật toán tìm kiếm, tối ưu hóa Numba, đối sánh thực nghiệm và báo cáo chuyên sâu do sinh viên thực hiện độc lập.
 - [`Reversi-mcts-master/`](Extended_Tic-Tac-Toe_Project/References/Reversi-mcts-master/) — Dự án mã nguồn C#/.NET tham khảo phương pháp áp dụng MCTS và Backtracking Minimax trong trò chơi đối kháng bàn cờ.
-
----
-
-## 👤 Tác giả & Giấy phép (Author & License)
-
-- **Tác giả:** Trương Chí Long
-- **Mã số sinh viên:** `3123410198`
-- **Lớp / Nhóm:** Nhóm 03 — Môn học: Trí Tuệ Nhân Tạo Nâng Cao (`841458`)
-- **Khoa / Trường:** Khoa Công nghệ Thông tin — Trường Đại học Sài Gòn (SGU)
-- **Giảng viên hướng dẫn:** ThS. Đỗ Như Tài
-- **Bản quyền & Giấy phép:** Dự án được phát hành theo giấy phép [MIT License](https://opensource.org/licenses/MIT). Toàn bộ nội dung học thuật, mã nguồn và tài liệu tuân thủ quy chuẩn trung thực học thuật (*Zero Fabrication & Reproducibility*).
