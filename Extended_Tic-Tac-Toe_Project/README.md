@@ -2,9 +2,10 @@
 
 [![Python](https://img.shields.io/badge/Python-%3E%3D3.11-blue.svg)](./pyproject.toml)
 [![PyTorch](https://img.shields.io/badge/PyTorch-%3E%3D2.1.0-ee4c2c.svg)](./pyproject.toml)
-[![Pytest](https://img.shields.io/badge/Pytest-347%20passed-brightgreen.svg)](#5-huong-dan-tai-lap-thuc-nghiem-1-lenh)
+[![Pytest](https://img.shields.io/badge/Pytest-347%20passed-brightgreen.svg)](#6-huong-dan-tai-lap-thuc-nghiem-1-lenh)
 [![Code Style](https://img.shields.io/badge/Code%20Style-Ruff%20%7C%20PEP%208-000000.svg)](./pyproject.toml)
-[![Academic Integrity](https://img.shields.io/badge/Integrity-Zero%20Fabrication-informational.svg)](#7-minh-bach-hoc-thuat--ke-thua)
+[![Deliverables](https://img.shields.io/badge/Deliverables-LaTeX%20%7C%20Slide%20%7C%20Poster%20%7C%20Notebook-orange.svg)](#4-bo-san-pham-bao-cao-thuyet-trinh--so-tay-thuc-nghiem-reports_project--jupiter_notebook)
+[![Academic Integrity](https://img.shields.io/badge/Integrity-Zero%20Fabrication-informational.svg)](#8-minh-bach-hoc-thuat--ke-thua)
 
 > **Hệ thống mô phỏng môi trường đối kháng, huấn luyện, giải đấu công bằng và trình diễn Rich CLI cho bài toán Game AI 7 cấp độ trên trò chơi Extended Tic-Tac-Toe tổng quát `M×N, K` (chuẩn thực nghiệm chính `4×4, K=4`).**
 
@@ -28,11 +29,12 @@
 1. [Tổng quan Dự án & Ba Câu hỏi Nghiên cứu (`RQ1, RQ2, RQ3`)](#1-tong-quan-du-an--ba-cau-hoi-nghien-cuu-rq1-rq2-rq3)
 2. [Kiến trúc Hệ thống & 7 Cấp độ Tác tử AI](#2-kien-truc-he-thong--7-cap-do-tac-tu-ai)
 3. [Bộ Tài liệu Sổ tay (`Planning/`) & Cấu trúc Thư mục Dự án](#3-bo-tai-lieu-so-tay-planning--cau-truc-thu-muc-du-an)
-4. [Hướng dẫn Cài đặt & Khởi tạo Môi trường (Quick Start)](#4-huong-dan-cai-dat--khoi-tao-moi-truong-quick-start)
-5. [Hướng dẫn Tái lập Thực nghiệm 1 Lệnh](#5-huong-dan-tai-lap-thuc-nghiem-1-lenh)
-6. [Hướng dẫn Trải nghiệm Trực quan (`Rich CLI` Dashboard)](#6-huong-dan-trai-nghiem-truc-quan-rich-cli-dashboard)
-7. [Minh bạch Học thuật & Kế thừa (`References/`)](#7-minh-bach-hoc-thuat--ke-thua)
-8. [Bảng Tự Đánh giá Ánh xạ Rubric (100 Điểm + 10 Điểm Khuyến khích)](#8-bang-tu-danh-gia-anh-xa-rubric-100-diem--10-diem-khuyen-khich)
+4. [Bộ Sản phẩm Báo cáo, Thuyết trình & Sổ tay Thực nghiệm (`Reports_Project/` & `Jupiter_Notebook/`)](#4-bo-san-pham-bao-cao-thuyet-trinh--so-tay-thuc-nghiem-reports_project--jupiter_notebook)
+5. [Hướng dẫn Cài đặt & Khởi tạo Môi trường (Quick Start)](#5-huong-dan-cai-dat--khoi-tao-moi-truong-quick-start)
+6. [Hướng dẫn Tái lập Thực nghiệm 1 Lệnh](#6-huong-dan-tai-lap-thuc-nghiem-1-lenh)
+7. [Hướng dẫn Trải nghiệm Trực quan (`Rich CLI` Dashboard)](#7-huong-dan-trai-nghiem-truc-quan-rich-cli-dashboard)
+8. [Minh bạch Học thuật & Kế thừa (`References/`)](#8-minh-bach-hoc-thuat--ke-thua)
+9. [Bảng Tự Đánh giá Ánh xạ Rubric (100 Điểm + 10 Điểm Khuyến khích)](#9-bang-tu-danh-gia-anh-xa-rubric-100-diem--10-diem-khuyen-khich)
 
 ---
 
@@ -98,45 +100,182 @@ Extended_Tic-Tac-Toe_Project/
 │   ├── RULES.md                      # 04. Nguyên tắc trung thực học thuật & quy ước kỹ thuật
 │   ├── TASKS.md                      # 05. Kế hoạch triển khai 5 Sprint (T1.1–T5.3)
 │   └── PROGRESS.md                   # 06. Nhật ký thực nghiệm, Bug Log (BUG-01..04) & Registry
+├── Reports_Project/                  # Bộ sản phẩm báo cáo học thuật, thuyết trình & poster
+│   ├── LaTeX/                        # Mã nguồn báo cáo đồ án LaTeX hoàn chỉnh theo chuẩn SGU
+│   │   ├── main.tex                  # Báo cáo toàn văn 7 chương (74 KB, công thức toán, bảng & phân tích)
+│   │   ├── SGU-LOGO.png              # Huy hiệu / Logo chính thức Trường Đại học Sài Gòn
+│   │   └── reports/figures/          # 5 biểu đồ thực nghiệm độ phân giải cao 300 DPI (fig1..5)
+│   ├── Slide_Extended_TicTacToe.pptx # Slide báo cáo thuyết trình đồ án cuối kỳ (13 slide chuyên nghiệp)
+│   └── Poster_A3_Extended_TicTacToe.pdf # Poster báo cáo khoa học khổ A3 chuẩn hội nghị học thuật
+├── Jupiter_Notebook/                 # Sổ tay thực nghiệm tương tác Jupyter Notebook
+│   └── Extended_Tic_Tac_Toe.ipynb    # Notebook 6 phần: Game API, 7 AI, Heatmap, tái tạo Fig 1..5 & RQ1-3
 ├── References/                       # Đề cương, slide, sách & kho mã tham khảo (chỉ đọc)
-│   ├── TTNTNC_De_tai_cuoi_ky_Game_AI.pdf
 │   ├── Tic tac toe Game.pdf
 │   ├── 2024 - Liu - AlphaGo Simplified Rule-Based AI and Deep Learning in Everyday Games.pdf
 │   ├── Artificial Intelligence A Modern Approach 4th.pdf
 │   ├── SuttonBartoIPRLBook2ndEd.pdf
-│   ├── AlphaGoSimplified-main/
-│   └── Reversi-mcts-master/
+│   ├── AlphaGoSimplified-main/       # Mã nguồn tham khảo minh họa từ sách Mark Liu (2024)
+│   └── Reversi-mcts-master/          # Mã nguồn tham khảo cấu trúc MCTS UCT từ Reversi C#
 ├── configs/                          # 7 tệp cấu hình YAML tập trung
-│   ├── game_{3x3_k3,4x4_k3,4x4_k4,5x5_k4}.yaml
-│   ├── train_supervised.yaml
-│   ├── train_rl.yaml
-│   └── tournament.yaml
-├── src/ttt_ai/                       # Gói thư viện lõi (editable package)
+│   ├── game_3x3_k3.yaml              # Cấu hình môi trường đối chứng 3x3 K=3
+│   ├── game_4x4_k3.yaml              # Cấu hình môi trường bất đối xứng 4x4 K=3 (RQ2)
+│   ├── game_4x4_k4.yaml              # Cấu hình môi trường chuẩn thực nghiệm chính 4x4 K=4
+│   ├── game_5x5_k4.yaml              # Cấu hình môi trường mở rộng 5x5 K=4 (Bonus)
+│   ├── train_supervised.yaml         # Siêu tham số huấn luyện SL Cấp 5
+│   ├── train_rl.yaml                 # Siêu tham số huấn luyện Tabular Q & DQN Self-Play Cấp 6
+│   └── tournament.yaml               # Thiết lập giải đấu Paired Round-Robin & ngân sách tính toán
+├── src/ttt_ai/                       # Gói thư viện lõi (Python package, cài đặt dạng editable)
 │   ├── config.py                     # Typed Dataclasses, YAML loader & seed_everything()
-│   ├── engine/                       # exceptions.py, rules.py, game.py (ExtendedTicTacToe)
+│   ├── engine/                       # exceptions.py, rules.py, game.py (ExtendedTicTacToe core)
 │   ├── agents/                       # base.py + 7 cấp AI (nn_models.py, hybrid_mcts_agent.py, ...)
 │   ├── training/                     # dataset_gen.py, train_supervised.py, train_q_tabular.py, train_dqn_selfplay.py, checkpoint_io.py
 │   ├── benchmark/                    # tournament.py, metrics.py, ablations.py, visualizer.py
 │   └── ui/                           # theme.py, cli_app.py (InteractiveCLIApp + Setup Wizard + Heatmap)
 ├── scripts/                          # 6 CLI entrypoints tái lập thực nghiệm & demo
-│   ├── generate_dataset.py
-│   ├── train_all.py
-│   ├── run_tournament.py
-│   ├── run_ablations.py
-│   ├── plot_results.py
-│   └── play.py
+│   ├── generate_dataset.py           # Sinh dữ liệu chuyên gia & huấn luyện mạng SL Cấp 5
+│   ├── train_all.py                  # Huấn luyện toàn diện Cấp 6 (Tabular Q & DQN đa seed)
+│   ├── run_tournament.py             # Điều phối 4 giải đấu Paired Round-Robin (16,800 ván)
+│   ├── run_ablations.py              # Điều phối 4 kịch bản Ablation khoa học (8,756 ván)
+│   ├── plot_results.py               # Kết xuất tự động Fig 1..5 (300 DPI) & bảng tổng hợp MD/CSV
+│   └── play.py                       # Khởi chạy Rich CLI Dashboard (Human vs AI & AI vs AI)
 ├── tests/                            # conftest.py + 18 module kiểm thử tự động (347 test cases pass 100%)
-├── checkpoints/                      # 15 cặp trọng số đã huấn luyện (.pt/.pkl) + *.meta.json
-├── logs/                             # datasets (.npz), 4 giải đấu (16,800 ván), smoke (84 ván), 4 ablations (8,756 ván), 15 train logs
+├── checkpoints/                      # 15 cặp trọng số đã huấn luyện (.pt/.pkl) + *.meta.json kèm SHA-256
+├── logs/                             # Datasets (.npz), logs giải đấu (16,800 ván), ablations (8,756 ván), train logs
 ├── reports/                          # figures/fig1..5*.png (300 DPI) + CSV/MD tổng hợp & sample_failure_cases.md
-├── terminal_test/                    # Ảnh chụp terminal kiểm chứng demo_play/ & sprint_test/
-├── pyproject.toml
-└── README.md
+├── pyproject.toml                    # Cấu hình đóng gói dự án, phụ thuộc pip & thiết lập Ruff / Pytest
+└── README.md                         # Tài liệu thuyết minh tổng quan dự án
 ```
 
 ---
 
-## 4. Hướng dẫn Cài đặt & Khởi tạo Môi trường (Quick Start)
+## 4. Bộ Sản phẩm Báo cáo, Thuyết trình & Sổ tay Thực nghiệm (`Reports_Project/` & `Jupiter_Notebook/`)
+
+Bên cạnh mã nguồn và bộ tài liệu kỹ thuật `Planning/`, dự án cung cấp đầy đủ bộ **4 ấn phẩm học thuật chính thức** phục vụ việc báo cáo đồ án và tái lập kết quả tương tác:
+
+| Sản phẩm | Vị trí Tệp / Thư mục | Định dạng & Quy mô | Mục đích & Đối tượng sử dụng |
+|---|---|---|---|
+| **Báo cáo đồ án** | [`Reports_Project/LaTeX/`](./Reports_Project/LaTeX/) | LaTeX source (`main.tex`, ~74 KB, 7 chương) | Báo cáo đồ án cuối kỳ hoàn chỉnh theo chuẩn học thuật SGU, kèm công thức toán học, bảng biểu và trích dẫn hình ảnh 300 DPI. |
+| **Slide Thuyết trình Đồ án** | [`Reports_Project/Slide_Extended_TicTacToe.pptx`](./Reports_Project/Slide_Extended_TicTacToe.pptx) | PowerPoint presentation (13 slide, 16:9, ~2.8 MB) | Trình bày trước Giảng viên hướng dẫn; cô đọng toàn bộ lộ trình, điểm nhấn thuật toán, kết quả 16,800 ván và demo. |
+| **Poster Khoa học Khổ A3** | [`Reports_Project/Poster_A3_Extended_TicTacToe.pdf`](./Reports_Project/Poster_A3_Extended_TicTacToe.pdf) | PDF Vector (1 trang A3 đứng, ~3.2 MB) | Trưng bày báo cáo poster; tổng hợp cô đọng toàn bộ đồ án chỉ trên một giao diện trực quan duy nhất. |
+| **Sổ tay Thực nghiệm Tương tác** | [`Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb`](./Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb) | Jupyter Notebook (22 cells, 6 phần) | Môi trường tương tác trực quan (Interactive Research Lab) cho phép chạy thử Game Engine, đấu thử 7 AI, hiển thị Heatmap và tái hiện trực tiếp Fig 1..5. |
+
+---
+
+### 4.1. Báo cáo đồ án bằng LaTeX (`Reports_Project/LaTeX/`)
+
+Thư mục [`Reports_Project/LaTeX/`](./Reports_Project/LaTeX/) chứa toàn bộ mã nguồn của báo cáo đồ án chính thức được soạn thảo bằng **LaTeX** theo quy chuẩn học thuật khắt khe của Trường Đại học Sài Gòn (SGU).
+
+- **Tệp nguồn chính:** [`Reports_Project/LaTeX/main.tex`](./Reports_Project/LaTeX/main.tex) (dung lượng hơn 74 KB, biên dịch qua `pdflatex` hoặc `xelatex`).
+- **Nhận diện thương hiệu:** Gắn kèm huy hiệu chính thức của nhà trường [`SGU-LOGO.png`](./Reports_Project/LaTeX/SGU-LOGO.png) tại trang bìa trang trọng.
+- **Thư mục hình ảnh:** [`Reports_Project/LaTeX/reports/figures/`](./Reports_Project/LaTeX/reports/figures/) chứa đầy đủ 5 biểu đồ thực nghiệm chuẩn 300 DPI (`fig1` đến `fig5`), được liên kết trực tiếp vào văn bản thông qua môi trường `\begin{figure}[H]`.
+
+#### Cấu trúc 7 Chương Nội dung của Báo cáo:
+1. **Chương 1: Giới thiệu & Đặt vấn đề Nghiên cứu:** Phân tích bước nhảy tổ hợp từ $3 \times 3$ ($3^9$) lên $4 \times 4, K=4$ ($3^{16} \approx 4.3 \times 10^7$ trạng thái), phát biểu mục tiêu kỹ thuật và 3 câu hỏi nghiên cứu trọng tâm (**RQ1–RQ3**).
+2. **Chương 2: Mô hình hóa Toán học & Kiến trúc Hệ thống:** Hình thức hóa bài toán dưới dạng Markov Decision Process (MDP) tổng bằng không; trình bày chi tiết kiến trúc phân tầng 5 module độc lập (`engine`, `agents`, `training`, `benchmark`, `ui`) và hợp đồng Game API nghiêm ngặt.
+3. **Chương 3: Hiện thực hóa 7 Cấp độ Tác tử AI:** Trình bày chi tiết lý thuyết, công thức toán học và thiết kế thuật toán từ Cấp 1 (`RandomAgent`), Cấp 2 (`RuleBasedAgent` 6 tầng Newell & Simon), Cấp 3 (`MinimaxAgent` & `AlphaBetaAgent` kèm Iterative Deepening), Cấp 4 (`MCTSAgent` 4 pha UCT), Cấp 5 (`Fast/StrongPolicyNet` và `ValueNet` có Action Masking), Cấp 6 (`TabularQAgent` và `DQNAgent` Self-Play + Mixed Pool), đến Cấp 7 (`HybridMCTSAgent` PUCT + Policy Prior + LRU Cache).
+4. **Chương 4: Thiết kế Đánh giá, Giải đấu & Kết quả Thực nghiệm:** Mô tả giao thức giải đấu Paired Round-Robin (16,800 ván đấu chính thức, cân bằng tuyệt đối 50% X / 50% O), đo đạc trên cả chế độ *Default* lẫn *Fixed Compute Budget (10 ms, 50 ms)*, 4 bộ thực nghiệm Ablation (8,756 ván), ước lượng khoảng tin cậy 95% (Wilson Score và Bootstrap), và đưa ra kết luận định lượng rõ ràng cho từng câu hỏi **RQ1, RQ2, RQ3**.
+5. **Chương 5: Giao diện Rich CLI, Phân tích Lỗi & Thảo luận:** Thiết kế bảng điều khiển Live Match Dashboard (48% bàn cờ / 52% telemetry & heatmap 5 mức màu), minh họa cơ chế Explainability thời gian thực đối chiếu `Prior P(s,a)` vs `Visit Share N(s,a)/N(s)`, và truy vết raw logs giải mã 4 ca thất bại chiến thuật điển hình (*Fork trap*, *Horizon effect*, *Overconfidence*, *Simulation starvation*).
+6. **Chương 6: Kết luận & Đối chiếu Rubric Đồ án:** Đánh giá tổng kết các đóng góp cốt lõi của công trình, bảng tự đánh giá đối chiếu chi tiết 100 điểm Rubric môn học + 10 điểm thưởng khuyến khích, cùng thảo luận về các giới hạn và hướng mở rộng tương lai.
+7. **Tài liệu Tham khảo:** Trích dẫn các công trình kinh điển của Russell & Norvig (*AIMA 4th*), Sutton & Barto (*RL 2nd*), Silver et al. (*AlphaGo / AlphaZero*), và Mark Liu (2024).
+
+#### Hướng dẫn Biên dịch Báo cáo LaTeX:
+```bash
+# Di chuyển vào thư mục LaTeX
+cd Reports_Project/LaTeX
+
+# Biên dịch bằng pdflatex (chạy 2 lần để cập nhật mục lục và liên kết chéo)
+pdflatex -interaction=nonstopmode main.tex
+pdflatex -interaction=nonstopmode main.tex
+```
+*(Hoặc nén toàn bộ thư mục `Reports_Project/LaTeX/` thành file `.zip` và tải lên Overleaf để biên dịch trực tuyến với TeX Live 2024+).*
+
+---
+
+### 4.2. Slide Báo cáo Thuyết trình Đồ án (`Reports_Project/Slide_Extended_TicTacToe.pptx`)
+
+Tệp trình chiếu [`Reports_Project/Slide_Extended_TicTacToe.pptx`](./Reports_Project/Slide_Extended_TicTacToe.pptx) được thiết kế chuyên nghiệp theo tỷ lệ chuẩn **16:9**, sử dụng bảng màu nhận diện thương hiệu học thuật đồng bộ với Trường ĐH Sài Gòn, tối ưu hóa cho bài thuyết trình bảo vệ đồ án trước Hội đồng (thời lượng 15–20 phút).
+
+#### Phân bổ Chi tiết 13 Slide Thuyết trình:
+- **Slide 01 — Tiêu đề & Thông tin Đồ án:** Nhận diện SGU, Khoa CNTT, Tên học phần, Đề tài *"Xây dựng và đánh giá Game AI đa cấp độ — Extended Tic-Tac-Toe"*, Giảng viên hướng dẫn ThS. Đỗ Như Tài và Sinh viên thực hiện Trương Chí Long.
+- **Slide 02 — 01. Đặt vấn đề & Động lực Nghiên cứu:** Bước nhảy không gian trạng thái từ $3 \times 3$ lên $4 \times 4, K=4$ phá vỡ thế cân bằng hòa tầm thường và bộc lộ sự phân hóa năng lực giữa các phương pháp AI.
+- **Slide 03 — 02. Ba Câu hỏi Nghiên cứu Trọng tâm:** Trình bày rõ ràng 3 câu hỏi định lượng cốt lõi **RQ1** (Hybrid MCTS vs Pure MCTS/Policy-only), **RQ2** (Lợi thế đi trước theo luật thắng $K$), và **RQ3** (RL Self-Play vs Supervised Learning trước Unseen Opponents).
+- **Slide 04 — 03. Kiến trúc Hệ thống Phân tầng (`ttt_ai`):** Sơ đồ 5 phân hệ độc lập, nguyên tắc cô lập biến nội bộ lõi Engine, hợp đồng Game API chuẩn và cơ chế chia tập dữ liệu theo `game_id` chống rò rỉ dữ liệu.
+- **Slide 05 — 04. Hệ sinh thái 7 Cấp độ Tác tử AI:** Bảng tổng hợp tiến hóa từ Baseline ngẫu nhiên (L1), Hệ luật Heuristic (L2), Tìm kiếm cây đối kháng (L3, L4), Mạng học sâu (L5), Học tăng cường (L6) đến Mô hình lai PUCT cảm hứng AlphaGo (L7).
+- **Slide 06 — 05. Điểm nhấn Thuật toán Nâng cao (Cấp 3, 6, 7):** Cắt giảm **-94.71% nút duyệt** ở $d=4$ với Alpha-Beta Pruning; cơ chế Double DQN Self-Play kết hợp Mixed Opponent Pool; thuật toán PUCT lai Policy/Value với LRU Hash Cache đạt tỷ lệ trúng 60.7%–69.0%.
+- **Slide 07 — 06. Thiết kế Thực nghiệm & Giải đấu Công bằng:** Thể thức Paired Round-Robin cân bằng 50/50 X/O (200 ván/cặp), đối chiếu giữa Default vs Fixed Budget (10 ms, 50 ms), và phương pháp ước lượng khoảng tin cậy 95% Wilson / Bootstrap.
+- **Slide 08 — 07. Kết quả Giải đấu Chính thức (16,800 ván):** Bảng xếp hạng điểm số tổng thể, phân tích tỷ lệ hòa thực tế đạt 71.1%–74.1% trên bàn $4 \times 4, K=4$ chứng minh tính mở và giàu tính chiến thuật của môi trường.
+- **Slide 09 — 08. Thí nghiệm Trả lời RQ1 (Ablation 2 — 2,760 ván):** Minh chứng định lượng sự vượt trội của Hybrid MCTS ở ngân sách mô phỏng thấp (`50 sims`: Score 0.583 vs 0.529 của Pure MCTS và 0.525 của Strong Policy).
+- **Slide 10 — 09. Thí nghiệm Trả lời RQ2 & RQ3:** Bùng nổ lợi thế đi trước ở $4 \times 4, K=3$ ($\Delta\text{Score} = +0.530$) và sự sụp đổ về thế cân bằng ở $K=4$ ($\Delta\text{Score} = +0.024$); Khả năng tổng quát hóa vượt trội của DQN Self-Play (`0.586 ± 0.027`) so với Supervised (`0.497`) trước đối thủ cây tìm kiếm chưa từng gặp.
+- **Slide 11 — 10. Giao diện Rich CLI & Giải thích Thời gian thực:** Bố cục Live Match Dashboard (48% bàn cờ / 52% telemetry), Action Heatmap 5 mức màu, và minh họa trực quan sự hiệu chỉnh từ `Prior P(s,a)` sang `Visit Share N(s,a)/N(s)` ở Cấp 7.
+- **Slide 12 — 11. Phân tích Ca lỗi & Bài học Kỹ thuật:** Truy vết từ raw logs 4 dạng thất bại chiến thuật điển hình (*Bẫy Fork đôi*, *Hiệu ứng chân trời*, *Ảo tưởng tự tin mạng nơ-ron*, *Nghèo đói mô phỏng MCTS*).
+- **Slide 13 — 12. Tổng kết & Ánh xạ Rubric Đồ án:** Hoàn thành trọn vẹn 5/5 Sprint, 347/347 test cases pass 100%, đối chiếu đạt 100/100 điểm chuẩn Rubric + 10/10 điểm khuyến khích.
+
+---
+
+### 4.3. Poster Báo cáo Khoa học Khổ A3 (`Reports_Project/Poster_A3_Extended_TicTacToe.pdf`)
+
+Tệp [`Reports_Project/Poster_A3_Extended_TicTacToe.pdf`](./Reports_Project/Poster_A3_Extended_TicTacToe.pdf) là poster báo cáo khoa học khổ **A3** (dạng trang ngang, kích thước $297 \times 420\text{ mm}$, định dạng PDF vector chất lượng in ấn cao), được trình bày theo chuẩn mực hội nghị khoa học quốc tế.
+
+#### Các Khối Nội dung Cốt lõi trên Poster:
+1. **Header & Metadata:** Huy hiệu Trường ĐH Sài Gòn, Khoa CNTT, Học phần TTNTNC (`841458`), Tiêu đề song ngữ Việt - Anh, Tác giả Trương Chí Long (MSSV: `3123410198`), GVHD ThS. Đỗ Như Tài và đường dẫn GitHub repository.
+2. **Khối Thông số Nổi bật (Key Metrics Banner):**
+   - **$4 \times 4, K=4$ MDP:** Môi trường chuẩn $3^{16} \approx 4.3 \times 10^7$ cấu hình; mở rộng linh hoạt từ $3 \times 3$ đến $5 \times 5$.
+   - **7 Cấp độ Tác tử (L1–L7):** Heuristic, Alpha-Beta, Pure MCTS, Deep Policy/Value, Double DQN Self-Play & Hybrid PUCT.
+   - **25,640 Ván · 347 Tests:** 16,800 ván giải đấu + 8,756 ván ablation + 84 ván smoke; 347/347 pytest pass 100% trong 157 giây; Ruff PEP 8 clean tuyệt đối.
+3. **Panel 1 — Đặt vấn đề, Bước nhảy Tổ hợp & RQ1–RQ3:** Phân tích sự sụp đổ của bài toán $3 \times 3$ và thiết kế 3 câu hỏi định lượng cốt lõi.
+4. **Panel 2 — Kiến trúc Phân tầng 5 Module & API Chuẩn:** Sơ đồ 5 module (`ui`, `benchmark`, `agents`, `training`, `engine`) và hợp đồng Game API cô lập trạng thái.
+5. **Panel 3 — Hệ sinh thái 7 Cấp độ Tác tử AI:** Bảng phân tầng thuật toán, cơ chế Action Masking (`-1e9`), Move Ordering, và PUCT Hybrid Search.
+6. **Panel 4 — Phương pháp Đánh giá Thực nghiệm:** Giao thức Paired Round-Robin cân bằng 50/50 X/O, kiểm soát ngân sách tính toán (Default, 10 ms, 50 ms) và kiểm định khoảng tin cậy 95%.
+7. **Panel 5 — Trực quan hóa Kết quả Thực nghiệm (5 Biểu đồ Fig 1–5):** Thu nhỏ sắc nét 5 biểu đồ khoa học: Ma trận đối đầu kép, độ trễ/chi phí tìm kiếm, kết quả RQ1, RQ2 và RQ3.
+8. **Panel 6 — Explainability & Rich CLI Live Dashboard:** Bố cục Dashboard terminal tương tác, Action Heatmap 5 mức màu và cơ chế giải thích nước đi Cấp 7.
+9. **Panel 7 — Kết luận & Đóng góp:** Tóm tắt 4 đóng góp khoa học chính và xác nhận chuẩn mực trung thực học thuật (*Zero Fabrication*).
+
+---
+
+### 4.4. Sổ tay Thực nghiệm Tương tác Jupyter Notebook (`Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb`)
+
+Tệp [`Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb`](./Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb) là sổ tay nghiên cứu tương tác gồm **22 cells** (kết hợp giải thích Markdown khoa học và mã nguồn Python có thể thực thi độc lập). Đây là một công cụ lý tưởng cho việc thẩm định mã nguồn, giảng dạy trực quan hoặc kiểm chứng nhanh từng thành phần hệ thống mà không cần mở Terminal.
+
+#### Lộ trình 6 Phần Thực nghiệm trong Notebook:
+- **Phần 1: Tổng quan Đồ án & Thiết lập Môi trường (Cells 0–1):**
+  - Giới thiệu bài toán, thiết lập đường dẫn `src/` vào `sys.path`, khởi tạo thư viện khoa học (`numpy`, `torch`, `matplotlib`, `yaml`), và cố định hạt giống ngẫu nhiên toàn cục `seed_everything(42)`.
+- **Phần 2: Lõi Trò chơi & Giao diện Hợp đồng Engine (Cells 2–4):**
+  - Nạp cấu hình từ `configs/game_4x4_k4.yaml` và `configs/game_3x3_k3.yaml`.
+  - Khởi tạo môi trường `ExtendedTicTacToe`, thực nghiệm các phương thức chuẩn: `reset()`, `step()`, `undo()`, `clone()`, `check_win_around()` với độ phức tạp tối ưu $O(K)$, tính toán góc nhìn đối xứng `canonical_board()`, và hiển thị bàn cờ dạng chuỗi.
+- **Phần 3: Thi triển & Đối đầu 7 Cấp độ Tác tử AI (Cells 5–9):**
+  - Khởi tạo trực tiếp từng tác tử: Cấp 1 (`RandomAgent`), Cấp 2 (`RuleBasedAgent`), Cấp 3 (`AlphaBetaAgent`), Cấp 4 (`MCTSAgent`).
+  - Xác minh tính toàn vẹn của trọng số mạng nơ-ron thông qua tệp `*.meta.json` và mã băm SHA-256 (`checkpoint_io.py`), nạp các tác tử Cấp 5 (`PolicyNetworkAgent`, `ValueGreedyAgent`) và Cấp 6 (`TabularQAgent`, `DQNAgent`).
+  - Trình diễn Cấp 7 (`HybridMCTSAgent` PUCT lai mạng nơ-ron), thu thập và in ra toàn bộ trường vi mô trong đối tượng `AgentDecision` (`latency_ms`, `nodes_visited`, `depth_reached`, `prior_probs`, `action_scores`).
+- **Phần 4: Action Heatmap & Trực quan hóa Thời gian thực (Cells 10–11):**
+  - Cài đặt hàm vẽ bản đồ nhiệt Matplotlib 5 mức màu tương thích trực tiếp với quy chuẩn đồ họa trong [Planning/DESIGN.md](./Planning/DESIGN.md).
+  - Trực quan hóa một thế cờ trung cuộc gay cấn trên bàn $4 \times 4, K=4$; đặt cạnh nhau để so sánh trực tiếp giữa gợi ý trực giác ban đầu `Prior P(s,a)` của mạng Policy và quyết định điều chỉnh sau duyệt cây `Visit Share N(s,a)/N(s)` của Cấp 7 (minh chứng trực quan cho **RQ1**).
+- **Phần 5: Tái tạo Kết quả Thực nghiệm Đồ án (`Fig 1–5` & `RQ1, RQ2, RQ3`) (Cells 12–20):**
+  - Đọc trực tiếp dữ liệu từ các tệp log thô `logs/tournament_*.jsonl`, `logs/ablation_*.jsonl` và báo cáo tổng hợp `reports/summary_metrics.csv`.
+  - Tái tạo đồ họa độ phân giải cao cho toàn bộ 5 hình khoa học:
+    - **Fig 1:** Ma trận đối đầu kép 7 tác tử (Tỷ lệ thắng và điểm số khi cầm quân X vs khi cầm quân O).
+    - **Fig 2:** Độ trễ suy nghĩ `mean_ms` (thang log), phân vị 95 `p95_ms` và số nút/mô phỏng trung bình.
+    - **Fig 3 (RQ1):** Đường cong năng lực của Hybrid MCTS (`rollout` & `mixed`) so với Pure MCTS và Policy-only theo ngân sách simulations $\in \{50, 150, 400\}$ và ngân sách thời gian 10 ms / 50 ms.
+    - **Fig 4 (RQ2):** Lợi thế đi trước $\Delta\text{Score}$ kèm khoảng tin cậy 95% trên các cấu hình $4 \times 4, K=3$, $3 \times 3, K=3$, và $4 \times 4, K=4$.
+    - **Fig 5 (RQ3):** Đường cong hội tụ huấn luyện và khả năng tổng quát hóa của DQN Self-Play (3 seeds) trước các đối thủ cây tìm kiếm chưa từng gặp lúc huấn luyện.
+  - Tích hợp các đoạn văn bản thảo luận và phân tích định lượng chuyên sâu cho từng câu hỏi nghiên cứu ngay bên dưới mỗi biểu đồ.
+- **Phần 6: Tổng kết & Kết luận (Cells 21):**
+  - Trình bày bảng đối chiếu Rubric môn học (100/100 điểm chuẩn + 10 điểm khuyến khích), tóm tắt các đóng góp khoa học, phân tích các điểm hạn chế và vạch ra định hướng mở rộng (AlphaZero hoàn chỉnh, ResNet sâu hơn, mở rộng lên cờ caro $15 \times 15, K=5$).
+
+#### Hướng dẫn Khởi chạy Jupyter Notebook:
+```bash
+# Kích hoạt môi trường ảo
+source .venv/bin/activate  # Trên Linux/macOS
+# .\.venv\Scripts\Activate.ps1  # Trên Windows PowerShell
+
+# Khởi chạy Jupyter Lab hoặc Notebook
+jupyter lab Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb
+# hoặc: jupyter notebook Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb
+```
+*(Người dùng cũng có thể mở trực tiếp tệp notebook này trong Visual Studio Code với Python Extension đã chọn kernel `.venv`).*
+
+---
+
+## 5. Hướng dẫn Cài đặt & Khởi tạo Môi trường (Quick Start)
 
 Yêu cầu hệ thống: **Python `>= 3.11`** (khuyến nghị `3.11` – `3.12`; đã kiểm thử đầy đủ trên `Python 3.14.7` Windows 11).
 
@@ -173,11 +312,11 @@ pip install -e ".[dev]"
 
 ---
 
-## 5. Hướng dẫn Tái lập Thực nghiệm 1 Lệnh
+## 6. Hướng dẫn Tái lập Thực nghiệm 1 Lệnh
 
 Mọi bước kiểm thử, sinh dữ liệu, huấn luyện, đấu giải, ablation và vẽ biểu đồ đều có thể chạy lại chỉ bằng **một lệnh duy nhất** từ thư mục `Extended_Tic-Tac-Toe_Project/`:
 
-### 5.1. Kiểm thử Đơn vị, Tích hợp & Kiểm tra Phong cách Code
+### 6.1. Kiểm thử Đơn vị, Tích hợp & Kiểm tra Phong cách Code
 ```bash
 # Chạy toàn bộ 347 test cases (engine, 7 agents, AST rules, training, tournament, metrics, ablations, CLI, visualizer)
 pytest -v
@@ -186,7 +325,7 @@ pytest -v
 ruff check src/ tests/ scripts/
 ```
 
-### 5.2. Sinh dữ liệu Chuyên gia & Huấn luyện Cấp 5 (Supervised Learning)
+### 6.2. Sinh dữ liệu Chuyên gia & Huấn luyện Cấp 5 (Supervised Learning)
 Dữ liệu được sinh từ `AlphaBetaAgent` kết hợp `RuleBasedAgent` (có nhiễu mở đầu) và chia `70% / 15% / 15%` theo **`game_id`** để tránh rò rỉ dữ liệu:
 ```bash
 # Sinh toàn bộ dataset (4x4_k4 & 3x3_k3) VÀ huấn luyện đủ FastPolicyNet, StrongPolicyNet, ValueNet
@@ -196,7 +335,7 @@ python scripts/generate_dataset.py --board all --train
 python scripts/generate_dataset.py --board 4x4_k4 --train --seed 42
 ```
 
-### 5.3. Huấn luyện Cấp 6 Đa Seed (Reinforcement Learning)
+### 6.3. Huấn luyện Cấp 6 Đa Seed (Reinforcement Learning)
 Script [scripts/train_all.py](./scripts/train_all.py) điều phối trực tiếp hai mô-đun [train_q_tabular.py](./src/ttt_ai/training/train_q_tabular.py) (`TabularQAgent` trên `3×3 K=3`) và [train_dqn_selfplay.py](./src/ttt_ai/training/train_dqn_selfplay.py) (`DQNAgent` Self-Play + Mixed Opponent Pool trên `4×4 K=4` & `4×4 K=3`) qua bộ 3 seeds `[42, 123, 999]`:
 ```bash
 # Huấn luyện đầy đủ TabularQ (3x3) và DQN Self-Play (4x4_k4, 4x4_k3) qua cả 3 seeds (42, 123, 999)
@@ -207,7 +346,7 @@ python scripts/train_all.py --mode tabular --board 3x3_k3 --seeds 42 123 999
 python scripts/train_all.py --mode dqn --board 4x4_k4 --seeds 42 123 999
 ```
 
-### 5.4. Chạy Giải đấu Paired Round-Robin Chính thức (16,800 ván)
+### 6.4. Chạy Giải đấu Paired Round-Robin Chính thức (16,800 ván)
 ```bash
 # Chạy đủ bộ 4 giải đấu chính thức (4x4 default, fixed_10ms, fixed_50ms & 3x3 default; 200 ván/cặp)
 python scripts/run_tournament.py --suite
@@ -219,7 +358,7 @@ python scripts/run_tournament.py --suite --verify-only
 python scripts/run_tournament.py --board 4x4_k4 --budget-mode fixed_10ms --n-pairs 100 --seed 42
 ```
 
-### 5.5. Chạy 4 Thí nghiệm Ablation Khoa học (`AB Pruning`, `RQ1`, `RQ2`, `RQ3`)
+### 6.5. Chạy 4 Thí nghiệm Ablation Khoa học (`AB Pruning`, `RQ1`, `RQ2`, `RQ3`)
 ```bash
 # Chạy trọn bộ 4 kịch bản ablation ở quy mô đầy đủ (8,756 ván) và xuất báo cáo ablation_*.{csv,md}
 python scripts/run_ablations.py --ablation all --mode full --seed 42
@@ -228,7 +367,7 @@ python scripts/run_ablations.py --ablation all --mode full --seed 42
 python scripts/run_ablations.py --ablation 2 --mode smoke --seed 42
 ```
 
-### 5.6. Kết xuất Tự động Biểu đồ (`Fig 1..5`, 300 DPI) & Báo cáo Thực nghiệm
+### 6.6. Kết xuất Tự động Biểu đồ (`Fig 1..5`, 300 DPI) & Báo cáo Thực nghiệm
 Đọc trực tiếp từ raw `logs/*.jsonl` (không chỉnh sửa tay số liệu) để xuất toàn bộ 5 hình PNG `300 DPI` và 3 file báo cáo định lượng (`reports/summary_metrics.csv`, `reports/summary_tables.md`, `reports/sample_failure_cases.md`):
 ```bash
 # Xuất đồng thời cả 5 biểu đồ (300 DPI) và toàn bộ bảng báo cáo / sample failure cases
@@ -248,7 +387,7 @@ python scripts/plot_results.py --figures 3 5 --dpi 300
 
 ---
 
-## 6. Hướng dẫn Trải nghiệm Trực quan (`Rich CLI` Dashboard)
+## 7. Hướng dẫn Trải nghiệm Trực quan (`Rich CLI` Dashboard)
 
 ### Các lệnh khởi chạy `scripts/play.py`
 
@@ -286,7 +425,7 @@ Giao diện Live Match Dashboard chia làm **2 cột cố định (Trái 48% / P
 
 ---
 
-## 7. Minh bạch Học thuật & Kế thừa
+## 8. Minh bạch Học thuật & Kế thừa
 
 Tuân thủ nguyên tắc minh bạch học thuật tại [Planning/RULES.md](./Planning/RULES.md), dự án phân định rõ ràng ranh giới giữa **phần tự thiết kế/cài đặt 100%** và **phần kế thừa/tham khảo khái niệm** từ thư mục `References/`:
 
@@ -300,7 +439,7 @@ Tuân thủ nguyên tắc minh bạch học thuật tại [Planning/RULES.md](./
 
 ---
 
-## 8. Bảng Tự Đánh giá Ánh xạ Rubric (100 Điểm + 10 Điểm Khuyến khích)
+## 9. Bảng Tự Đánh giá Ánh xạ Rubric (100 Điểm + 10 Điểm Khuyến khích)
 
 Đối chiếu đầy đủ 8 tiêu chí chính thức và phần Điểm Khuyến khích từ [Planning/PRD.md](./Planning/PRD.md) (Mục 6) với bằng chứng kiểm chứng cụ thể trong repository:
 
@@ -312,7 +451,7 @@ Tuân thủ nguyên tắc minh bạch học thuật tại [Planning/RULES.md](./
 | **4** | **Tác tử học được (Cấp 5–7)** | **15** | **15 checkpoints** đã huấn luyện thực tế + `.meta.json` trong [`checkpoints/`](./checkpoints/): `Fast/StrongPolicyNet` & `ValueNet` (`3×3`, `4×4`, tách tập theo `game_id`), `TabularQAgent` (`3×3` x 3 seeds), `DQNAgent` Self-Play (`4×4 K=4`, `4×4 K=3` x 3 seeds), và `HybridMCTSAgent` (PUCT + LRU cache + `rollout`/`mixed`). Kèm raw learning curves `logs/train_*.jsonl`. | Đạt chuẩn |
 | **5** | **Thiết kế đánh giá** | **15** | Giải đấu **Paired Round-Robin** ([tournament.py](./src/ttt_ai/benchmark/tournament.py)): **200 ván/cặp** (`100` đi `X` + `100` đi `O`), **4 giải chính thức = 16,800 ván** ở cả *Default* và *Fixed Budget (`10 ms`, `50 ms`)* + đối chứng `3×3 K=3`, `0` `IllegalMoveError`. Kèm **4 kịch bản Ablation (`8,756` ván)** trong [ablations.py](./src/ttt_ai/benchmark/ablations.py). | Đạt chuẩn |
 | **6** | **Kết quả & thảo luận** | **10** | Tự động tính Wilson/Bootstrap 95% CI, $\Delta\text{Score}$, `mean_ms`, `p95_ms`, `avg_nodes/sims` trong [metrics.py](./src/ttt_ai/benchmark/metrics.py); tổng hợp đủ trong [summary_tables.md](./reports/summary_tables.md), [tournament_suite_summary.md](./reports/tournament_suite_summary.md), [ablation_summary.md](./reports/ablation_summary.md), và phân tích ván lỗi thực tế [sample_failure_cases.md](./reports/sample_failure_cases.md). | Đạt chuẩn |
-| **7** | **Báo cáo, slide, demo** | **10** | Pipeline [visualizer.py](./src/ttt_ai/benchmark/visualizer.py) + [plot_results.py](./scripts/plot_results.py) xuất tự động **Fig 1..5** (`300 DPI` PNG, không đè nhãn) trong [`reports/figures/`](./reports/figures/); Demo Rich CLI [play.py](./scripts/play.py) chạy mượt cả `Human vs AI` và `AI vs AI` (ảnh kiểm chứng trong [`terminal_test/`](./terminal_test/)); đầy đủ bộ 6 tài liệu `Planning/`. | Đạt chuẩn |
+| **7** | **Báo cáo, slide, demo** | **10** | Pipeline [visualizer.py](./src/ttt_ai/benchmark/visualizer.py) + [plot_results.py](./scripts/plot_results.py) xuất tự động **Fig 1..5** (`300 DPI` PNG, không đè nhãn) trong [`reports/figures/`](./reports/figures/); Demo Rich CLI [play.py](./scripts/play.py) chạy mượt cả `Human vs AI` và `AI vs AI`; đầy đủ bộ 6 tài liệu `Planning/`; **Báo cáo toàn văn LaTeX** [`Reports_Project/LaTeX/main.tex`](./Reports_Project/LaTeX/main.tex) (7 chương, chuẩn SGU); **Slide thuyết trình 13 trang** [`Slide_Extended_TicTacToe.pptx`](./Reports_Project/Slide_Extended_TicTacToe.pptx); **Poster khoa học A3** [`Poster_A3_Extended_TicTacToe.pdf`](./Reports_Project/Poster_A3_Extended_TicTacToe.pdf); và **Sổ tay thực nghiệm tương tác** [`Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb`](./Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb) (22 cells, 6 phần). | Đạt chuẩn |
 | **8** | **Tái lập & đạo đức** | **5** | `ruff check src/ tests/ scripts/` sạch PEP 8; **347/347 `pytest`** pass; quản lý seed đồng bộ; lưu toàn bộ raw logs `.jsonl` kèm metadata phần cứng; minh bạch đối chiếu `References/` trong README & docstrings; dữ liệu báo cáo trích xuất nguyên gốc từ log thô (*Zero Fabrication*). | Đạt chuẩn |
-| **+** | **Điểm khuyến khích (Bonus)** | **+10** | Thực nghiệm đối chứng thuyết phục **Cấp 7 `HybridMCTS`** (`rollout` & `mixed` vs `Pure MCTS` vs `PolicyNet`, minh họa **RQ1**); kiểm thử đa cấu hình **`3×3 K=3`**, **`4×4 K=3`**, **`4×4 K=4`**, **`5×5 K=4`** ([game_5x5_k4.yaml](./configs/game_5x5_k4.yaml)); và **Real-time Explainability Heatmap** (hiển thị đồng thời `Prior` & `Visit Share` của Cấp 7) trên Rich CLI. | Sẵn sàng |
+| **+** | **Điểm khuyến khích (Bonus)** | **+10** | Thực nghiệm đối chứng thuyết phục **Cấp 7 `HybridMCTS`** (`rollout` & `mixed` vs `Pure MCTS` vs `PolicyNet`, minh họa **RQ1**); kiểm thử đa cấu hình **`3×3 K=3`**, **`4×4 K=3`**, **`4×4 K=4`**, **`5×5 K=4`** ([game_5x5_k4.yaml](./configs/game_5x5_k4.yaml)); và **Real-time Explainability Heatmap** (hiển thị đồng thời `Prior` & `Visit Share` của Cấp 7) trên Rich CLI. | Đạt chuẩn |
 | | **Tổng cộng** | **100 (+10)** | Toàn bộ 5/5 Sprint (`Phase 0` + `T1.1`–`T5.3`) đã hoàn thành & kiểm chứng. | **READY** |
