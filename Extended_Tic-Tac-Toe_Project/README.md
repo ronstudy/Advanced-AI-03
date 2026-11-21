@@ -21,7 +21,7 @@
 | **Sinh viên thực hiện** | Trương Chí Long |
 | **MSSV** | `3123410198` |
 | **Đơn vị** | Trường Đại học Sài Gòn (SGU) |
-| **Repository** | [github.com/ronstudy/Advanced-AI-03/Extended_Tic-Tac-Toe_Project]([https://github.com/ronstudy/Advanced-AI-03/tree/main/Extended_Tic-Tac-Toe_Project)) |
+| **Repository** | [github.com/ronstudy/Advanced-AI-03/Extended_Tic-Tac-Toe_Project]([https://github.com/ronstudy/Advanced-AI-03/tree/main/Extended_Tic-Tac-Toe_Project) |
 
 ---
 
