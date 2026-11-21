@@ -157,7 +157,7 @@ Bên cạnh mã nguồn và bộ tài liệu kỹ thuật `Planning/`, dự án 
 |---|---|---|---|
 | **Báo cáo đồ án** | [`Reports_Project/LaTeX/`](./Reports_Project/LaTeX/) | LaTeX source (`main.tex`, ~74 KB, 7 chương) | Báo cáo đồ án cuối kỳ hoàn chỉnh theo chuẩn học thuật SGU, kèm công thức toán học, bảng biểu và trích dẫn hình ảnh 300 DPI. |
 | **Slide Thuyết trình Đồ án** | [`Reports_Project/Slide_Extended_TicTacToe.pptx`](./Reports_Project/Slide_Extended_TicTacToe.pptx) | PowerPoint presentation (13 slide, 16:9, ~2.8 MB) | Trình bày trước Giảng viên hướng dẫn; cô đọng toàn bộ lộ trình, điểm nhấn thuật toán, kết quả 16,800 ván và demo. |
-| **Poster Khoa học Khổ A3** | [`Reports_Project/Poster_A3_Extended_TicTacToe.pdf`](./Reports_Project/Poster_A3_Extended_TicTacToe.pdf) | PDF Vector (1 trang A3 đứng, ~3.2 MB) | Trưng bày báo cáo poster; tổng hợp cô đọng toàn bộ đồ án chỉ trên một giao diện trực quan duy nhất. |
+| **Poster Khoa học Khổ A3** | [`Reports_Project/Poster_A3_Extended_TicTacToe.pdf`](./Reports_Project/Poster_A3_Extended_TicTacToe.pdf) | PDF Vector (1 trang A3 ngang, ~3.2 MB) | Trưng bày báo cáo poster; tổng hợp cô đọng toàn bộ đồ án chỉ trên một giao diện trực quan duy nhất. |
 | **Sổ tay Thực nghiệm Tương tác** | [`Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb`](./Jupiter_Notebook/Extended_Tic_Tac_Toe.ipynb) | Jupyter Notebook (22 cells, 6 phần) | Môi trường tương tác trực quan (Interactive Research Lab) cho phép chạy thử Game Engine, đấu thử 7 AI, hiển thị Heatmap và tái hiện trực tiếp Fig 1..5. |
 
 ---
