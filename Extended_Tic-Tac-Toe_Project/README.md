@@ -21,6 +21,7 @@
 | **Sinh viên thực hiện** | Trương Chí Long |
 | **MSSV** | `3123410198` |
 | **Đơn vị** | Trường Đại học Sài Gòn (SGU) |
+| **Repository** | [github.com/ronstudy/Advanced-AI-03](https://github.com/ronstudy/Advanced-AI-03) |
 
 ---
 
