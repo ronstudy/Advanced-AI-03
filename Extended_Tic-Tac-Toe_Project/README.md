@@ -10,6 +10,19 @@
 
 ---
 
+## Thông tin chung
+
+| Mục | Chi tiết |
+|---|---|
+| **Học phần** | Trí Tuệ Nhân Tạo Nâng Cao (`841458`) |
+| **Giảng viên hướng dẫn** | Đỗ Như Tài |
+| **Nhóm** | 03 |
+| **Sinh viên thực hiện** | Trương Chí Long |
+| **MSSV** | `3123410198` |
+| **Đơn vị** | Trường Đại học Sài Gòn (SGU) |
+
+---
+
 ## Mục lục
 
 1. [Tổng quan Dự án & Ba Câu hỏi Nghiên cứu (`RQ1, RQ2, RQ3`)](#1-tong-quan-du-an--ba-cau-hoi-nghien-cuu-rq1-rq2-rq3)
