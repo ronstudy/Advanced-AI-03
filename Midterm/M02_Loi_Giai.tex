@@ -99,7 +99,6 @@ $C\to B$ & $x_C>0\cm x_B<5$ & $q=\min(x_C,5-x_B)$\sm $x_C\mathrel{-}=q\cm x_B\ma
 
 \paragraph{Quy ước.} $g(n)$ = số lần rót từ $s_0$ đến $n$; $f(n)=g(n)+h(n)$. Mỗi bước chọn nút trong OPEN có $f$ nhỏ nhất; nếu bằng nhau thì chọn nút có $h$ nhỏ hơn, nếu vẫn bằng nhau thì chọn nút sinh ra trước (thứ tự toán tử: $A\!\to\! B\cm A\!\to\! C\cm B\!\to\! A\cm B\!\to\! C\cm C\!\to\! A\cm C\!\to\! B$). Nút đã nằm trong CLOSED thì bỏ; nút đã nằm trong OPEN với $g$ nhỏ hơn hoặc bằng thì bỏ bản sao mới. Kiểm tra đích khi \emph{mở rộng} nút. Ký hiệu $\ghf{g}{h}{f}$.
 
-\paragraph{Nhận xét.} $h(8,0,0)=4+4+4=12$. Với trạng thái đích $h(4,4,0)=0+0+4=4\neq 0$, và $h$ không chấp nhận được (ví dụ $h(1,4,3)=4$ nhưng chỉ cần $1$ bước rót để tới đích), nên A* ở đây chỉ được dùng như tìm kiếm heuristic; kết quả vẫn tìm được lời giải $7$ bước.
 
 \paragraph{Các bước duyệt nút.}
 \footnotesize
@@ -506,7 +505,6 @@ F & F & $0.9$ & $0.2$ & $1.00$ & $0.9\cdot0.2\cdot1.00=0.1800$ \\
 \[
 \boxed{P(W=F\mid C=T)=0.0008+0.0020+0.0720+0.1800=0.2548\ (25.48\%)}
 \]
-(Kiểm tra: $P(W{=}T\mid C{=}T)=0.08\cdot0.99+0.02\cdot0.9+0.72\cdot0.9+0.18\cdot0=0.7452$, và $0.7452+0.2548=1$.)
 
 \subsection*{b) $P(R=T,S=T)$}
 Biên duyên hóa theo $C$ (còn $W$ được lấy tổng bằng $1$ vì $\sum_w P(w\mid S,R)=1$):
@@ -518,7 +516,6 @@ P(R{=}T,S{=}T)&=\sum_{c\in\{T,F\}}\sum_{w\in\{T,F\}}P(c)\,P(S{=}T\mid c)\,P(R{=}
 \[
 \boxed{P(R=T,S=T)=0.09}
 \]
-\emph{Nhận xét:} $P(S{=}T)=0.5\cdot0.1+0.5\cdot0.5=0.3$ và $P(R{=}T)=0.5\cdot0.8+0.5\cdot0.2=0.5$, tích $=0.15\ne0.09$; vậy $S$ và $R$ \emph{không} độc lập khi không biết $C$ (do cùng phụ thuộc vào Cloudy).
 
 %====================================================================
 \clearpage
@@ -675,7 +672,6 @@ Income & Low     & $\frac12$ & $\frac03$ & $\frac12$ & $\frac25$ & $\frac16$ & $
 \bottomrule
 \end{tabular}
 \end{center}
-(Kiểm tra: mỗi cột sau làm mượt của một thuộc tính đều có tổng bằng $1$, ví dụ Cars$\mid$Car: $\tfrac16+\tfrac36+\tfrac26=1$.)
 
 \subsection*{b) Phân loại hai mẫu mới}
 Dùng $P(C\mid x)\propto P(C)\prod_i P(x_i\mid C)$ (giả thiết độc lập có điều kiện), với các likelihood đã làm mượt.
